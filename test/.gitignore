@@ -1,3 +1,6 @@
+android/gen
+android/libs
+android/obj
 output
 pkg
 bin

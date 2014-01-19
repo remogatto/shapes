@@ -2,71 +2,16 @@ package testlib
 
 import (
 	"fmt"
-	"image"
 	"image/color"
 	"image/png"
-	"os"
 	"path/filepath"
 
 	"github.com/remogatto/imagetest"
 	"github.com/remogatto/mandala"
 	"github.com/remogatto/mandala/test/src/testlib"
-	"github.com/remogatto/mathgl"
 	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/shapes"
 )
-
-const (
-	expectedImgPath = "res/drawable"
-	outputPath      = "output"
-)
-
-type world struct {
-	width, height int
-	projMatrix    mathgl.Mat4f
-	viewMatrix    mathgl.Mat4f
-}
-
-func newWorld(width, height int) *world {
-	return &world{
-		width:      width,
-		height:     height,
-		projMatrix: mathgl.Ortho2D(-float32(width/2), float32(width/2), float32(height/2), -float32(height/2)),
-		viewMatrix: mathgl.Ident4f(),
-	}
-}
-
-func (w *world) Projection() mathgl.Mat4f {
-	return w.projMatrix
-}
-
-func (w *world) View() mathgl.Mat4f {
-	return w.viewMatrix
-}
-
-// Create an image containing both expected and actual images, side by
-// side.
-func saveExpAct(filename string, exp image.Image, act image.Image) {
-	rect := exp.Bounds()
-	dstRect := image.Rect(rect.Min.X, rect.Min.Y, rect.Max.X*2, rect.Max.Y)
-	dstImage := image.NewRGBA(dstRect)
-
-	for y := rect.Min.Y; y < rect.Max.Y; y++ {
-		for x := rect.Min.X; x < rect.Max.X; x++ {
-			dstImage.Set(x, y, exp.At(x, y))
-			dstImage.Set(x+rect.Max.X, y, act.At(x, y))
-			// Draw a white vertical line to split the
-			// images
-			if x == rect.Max.X-1 {
-				dstImage.Set(x, y, color.White)
-			}
-		}
-	}
-
-	file, _ := os.Create(filepath.Join(outputPath, filename))
-	png.Encode(file, dstImage)
-	file.Close()
-}
 
 func (t *TestSuite) TestBox() {
 	filename := "expected_box.png"
@@ -115,7 +60,7 @@ func (t *TestSuite) TestRotatedBox() {
 		box.Color = color.RGBA{1.0, 0.0, 0.0, 1.0}
 		box.AttachToWorld(world)
 		// Rotate the box 20 degrees
-		box.Rotate(-20.0)
+		box.Rotate(20.0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)

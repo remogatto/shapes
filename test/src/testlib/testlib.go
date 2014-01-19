@@ -3,11 +3,17 @@ package testlib
 import (
 	"fmt"
 	"image"
+	"image/color"
+	"image/draw"
+	"image/png"
+	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
 	"git.tideland.biz/goas/loop"
 	"github.com/remogatto/mandala"
+	"github.com/remogatto/mathgl"
 	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/prettytest"
 )
@@ -15,7 +21,16 @@ import (
 const (
 	// We don't need high framerate for testing
 	FramesPerSecond = 15
+
+	expectedImgPath = "res/drawable"
+	outputPath      = "output"
 )
+
+type world struct {
+	width, height int
+	projMatrix    mathgl.Mat4f
+	viewMatrix    mathgl.Mat4f
+}
 
 type TestSuite struct {
 	prettytest.Suite
@@ -177,6 +192,54 @@ func (t *TestSuite) BeforeAll() {
 		)
 	}
 
+}
+
+func newWorld(width, height int) *world {
+	return &world{
+		width:      width,
+		height:     height,
+		projMatrix: mathgl.Ortho2D(-float32(width/2), float32(width/2), float32(height/2), -float32(height/2)),
+		viewMatrix: mathgl.Ident4f(),
+	}
+}
+
+func (w *world) Projection() mathgl.Mat4f {
+	return w.projMatrix
+}
+
+func (w *world) View() mathgl.Mat4f {
+	return w.viewMatrix
+}
+
+// Create an image containing both expected and actual images, side by
+// side.
+func saveExpAct(filename string, exp image.Image, act image.Image) {
+	rect := exp.Bounds()
+	dstRect := image.Rect(rect.Min.X, rect.Min.Y, rect.Max.X*3, rect.Max.Y)
+	dstImage := image.NewRGBA(dstRect)
+
+	// Copy the expected image
+	dp := image.Point{0, 0}
+	r := image.Rectangle{dp, dp.Add(rect.Size())}
+	draw.Draw(dstImage, r, exp, image.ZP, draw.Src)
+
+	// Copy the actual image
+	dp = image.Point{rect.Max.X, 0}
+	r = image.Rectangle{dp, dp.Add(rect.Size())}
+	draw.Draw(dstImage, r, act, image.ZP, draw.Src)
+
+	// Re-copy the actual image
+	dp = image.Point{rect.Max.X * 2, 0}
+	r = image.Rectangle{dp, dp.Add(rect.Size())}
+	draw.Draw(dstImage, r, act, image.ZP, draw.Src)
+
+	// Composite expected over actual
+	draw.DrawMask(dstImage, r, exp, image.ZP, &image.Uniform{color.RGBA{A: 64}}, image.ZP, draw.Over)
+
+	file, _ := os.Create(filepath.Join(outputPath, filename))
+	defer file.Close()
+
+	png.Encode(file, dstImage)
 }
 
 func NewTestSuite() *TestSuite {
