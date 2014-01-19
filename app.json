@@ -1,0 +1,10 @@
+{
+    "AppName": "Shapes",
+    "LibName": "shapes",
+    "TestLibName": "shapes_testrunner",
+    "Domain":  "net.mandala",
+    "TestDomain": "net.mandala.test"
+}
+
+
+
