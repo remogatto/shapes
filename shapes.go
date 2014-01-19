@@ -103,6 +103,11 @@ func (box *Box) AttachToWorld(world World) {
 	box.viewMatrix = world.View()
 }
 
+// Rotate the box by the given angle (in degrees).
+func (box *Box) Rotate(angle float32) {
+	box.modelMatrix = mathgl.HomogRotate3DZ(angle)
+}
+
 // Draw actually renders the object on the surface.
 func (box *Box) Draw() {
 	box.program.Use()

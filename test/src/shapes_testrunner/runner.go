@@ -36,6 +36,8 @@ func main() {
 		panic(err)
 	}
 
+	glfw.SwapInterval(0)
+
 	mandala.Init(window)
 
 	go prettytest.Run(new(testing.T), testlib.NewTestSuite())

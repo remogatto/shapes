@@ -8,7 +8,6 @@ import (
 
 	"git.tideland.biz/goas/loop"
 	"github.com/remogatto/mandala"
-	"github.com/remogatto/mandala/test/src/testlib"
 	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/prettytest"
 )
@@ -24,7 +23,8 @@ type TestSuite struct {
 	rlControl *renderLoopControl
 	timeout   <-chan time.Time
 
-	testDraw    chan image.Image
+	testDraw chan image.Image
+
 	renderState *renderState
 }
 
@@ -81,10 +81,7 @@ func (t *TestSuite) renderLoopFunc(control *renderLoopControl) loop.LoopFunc {
 		for {
 			select {
 			case drawFunc := <-control.drawFunc:
-				gl.Clear(gl.COLOR_BUFFER_BIT)
 				drawFunc()
-				t.renderState.window.SwapBuffers()
-				t.testDraw <- testlib.Screenshot(t.renderState.window)
 			}
 		}
 	}
