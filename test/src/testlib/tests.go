@@ -8,7 +8,7 @@ import (
 	"github.com/remogatto/imagetest"
 	"github.com/remogatto/mandala"
 	"github.com/remogatto/mathgl"
-	"github.com/remogatto/shapes/src/shapes"
+	"github.com/remogatto/shapes"
 )
 
 type world struct {
