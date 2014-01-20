@@ -198,7 +198,7 @@ func newWorld(width, height int) *world {
 	return &world{
 		width:      width,
 		height:     height,
-		projMatrix: mathgl.Ortho2D(-float32(width/2), float32(width/2), float32(height/2), -float32(height/2)),
+		projMatrix: mathgl.Ortho2D(0, float32(width), -float32(height/2), float32(height/2)),
 		viewMatrix: mathgl.Ident4f(),
 	}
 }

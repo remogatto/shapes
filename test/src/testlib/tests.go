@@ -45,11 +45,12 @@ func (t *TestSuite) TestBox() {
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
-		// Place a box on the center of the window
-		box := shapes.NewBox(0, 0, 100, 100)
+		// Create a box
+		box := shapes.NewBox(100, 100)
 		box.Color = color.RGBA{1.0, 0.0, 0.0, 1.0}
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
+		box.Position(float32(w/2), 0)
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
@@ -58,7 +59,7 @@ func (t *TestSuite) TestBox() {
 	if err != nil {
 		panic(err)
 	}
-	t.True(distance < distanceThreshold, fmt.Sprint("Image differs, result saved in %s", outputPath))
+	t.True(distance < distanceThreshold, fmt.Sprintf("Image differs, result saved in %s", outputPath))
 	if t.Failed() {
 		saveExpAct("failed_"+filename, exp, act)
 	}
@@ -69,12 +70,14 @@ func (t *TestSuite) TestRotatedBox() {
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
-		// Place a box on the center of the window
-		box := shapes.NewBox(0, 0, 100, 100)
+		// Create a 100x100 pixel² box
+		box := shapes.NewBox(100, 100)
 		box.Color = color.RGBA{1.0, 0.0, 0.0, 1.0}
 		box.AttachToWorld(world)
+		// Place the box at the center of the screen
+		box.Position(float32(w/2), 0)
 		// Rotate the box 20 degrees
-		box.Rotate(-20.0)
+		box.Rotate(20.0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
@@ -84,7 +87,7 @@ func (t *TestSuite) TestRotatedBox() {
 	if err != nil {
 		panic(err)
 	}
-	t.True(distance < distanceThreshold, fmt.Sprint("Image differs, result saved in %s", outputPath))
+	t.True(distance < distanceThreshold, fmt.Sprintf("Image differs, result saved in %s", outputPath))
 	if t.Failed() {
 		saveExpAct("failed_"+filename, exp, act)
 	}
@@ -96,9 +99,10 @@ func (t *TestSuite) TestTranslatedBox() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 		// Place a box on the center of the window
-		box := shapes.NewBox(0, 0, 100, 100)
+		box := shapes.NewBox(100, 100)
 		box.Color = color.RGBA{1.0, 0.0, 0.0, 1.0}
 		box.AttachToWorld(world)
+		box.Position(100, -140)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
@@ -108,7 +112,7 @@ func (t *TestSuite) TestTranslatedBox() {
 	if err != nil {
 		panic(err)
 	}
-	t.True(distance < distanceThreshold, fmt.Sprint("Image differs, result saved in %s", outputPath))
+	t.True(distance < distanceThreshold, fmt.Sprintf("Image differs, result saved in %s", outputPath))
 	if t.Failed() {
 		saveExpAct("failed_"+filename, exp, act)
 	}

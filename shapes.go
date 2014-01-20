@@ -20,7 +20,7 @@ type World interface {
 }
 
 type Box struct {
-	// Center of the box in viewport coordinates
+	// Center of the box
 	X, Y float32
 
 	// Size of the box
@@ -44,13 +44,15 @@ type Box struct {
 	viewMatrixId  uint32
 }
 
-func NewBox(x, y, width, height float32) *Box {
+func NewBox(width, height float32) *Box {
 	vertices := [8]float32{
-		x - width/2, y - height/2,
-		x + width/2, y - height/2,
-		x - width/2, y + height/2,
-		x + width/2, y + height/2,
+		-width / 2, -height / 2,
+		width / 2, -height / 2,
+		-width / 2, height / 2,
+		width / 2, height / 2,
 	}
+
+	x, y := width/2, height/2
 
 	// Shader sources
 
@@ -103,9 +105,15 @@ func (box *Box) AttachToWorld(world World) {
 	box.viewMatrix = world.View()
 }
 
-// Rotate the box by the given angle (in degrees).
+// Rotate the box around its center, by the given angle (in degrees).
 func (box *Box) Rotate(angle float32) {
-	box.modelMatrix = mathgl.HomogRotate3DZ(angle)
+	box.modelMatrix = mathgl.Translate3D(box.X, box.Y, 0).Mul4(mathgl.HomogRotate3DZ(angle))
+}
+
+// Place the box at the given position
+func (box *Box) Position(x, y float32) {
+	box.X, box.Y = x, y
+	box.modelMatrix = mathgl.Translate3D(x, y, 0)
 }
 
 // Draw actually renders the object on the surface.
