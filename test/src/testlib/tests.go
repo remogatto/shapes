@@ -143,3 +143,27 @@ func (t *TestSuite) TestColoredBox() {
 		saveExpAct("failed_"+filename, exp, act)
 	}
 }
+
+func (t *TestSuite) TestLine() {
+	filename := "expected_line.png"
+	t.rlControl.drawFunc <- func() {
+		w, h := t.renderState.window.GetSize()
+		world := newWorld(w, h)
+		line := shapes.NewLine(81.5, -40, 238.5, 44)
+		// Color is yellow
+		line.Color(color.RGBA{255, 0, 0, 255})
+		line.AttachToWorld(world)
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+		line.Draw()
+		t.testDraw <- testlib.Screenshot(t.renderState.window)
+		t.renderState.window.SwapBuffers()
+	}
+	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	if err != nil {
+		panic(err)
+	}
+	t.True(distance < 0.0009, distanceError(distance, outputPath))
+	if t.Failed() {
+		saveExpAct("failed_"+filename, exp, act)
+	}
+}
