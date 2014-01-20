@@ -27,10 +27,12 @@ type Box struct {
 	Width, Height float32
 
 	// Color of the box
-	Color color.Color
+	color [16]float32
 
+	// Vertices of the box
 	vertices [8]float32
-	program  shaders.Program
+
+	program shaders.Program
 
 	// Matrices
 	projMatrix  mathgl.Mat4f
@@ -38,6 +40,7 @@ type Box struct {
 	viewMatrix  mathgl.Mat4f
 
 	// GLSL variables IDs
+	colorId       uint32
 	posId         uint32
 	projMatrixId  uint32
 	modelMatrixId uint32
@@ -45,11 +48,21 @@ type Box struct {
 }
 
 func NewBox(width, height float32) *Box {
+
+	// The box is built around its center
 	vertices := [8]float32{
 		-width / 2, -height / 2,
 		width / 2, -height / 2,
 		-width / 2, height / 2,
 		width / 2, height / 2,
+	}
+
+	// Default color is blue
+	color := [16]float32{
+		0, 0, 1, 1,
+		0, 0, 1, 1,
+		0, 0, 1, 1,
+		0, 0, 1, 1,
 	}
 
 	x, y := width/2, height/2
@@ -59,16 +72,20 @@ func NewBox(width, height float32) *Box {
 	vShaderSrc := (shaders.VertexShader)(
 		`precision mediump float;
                  attribute vec4 pos;
+                 attribute vec4 color;
+                 varying vec4 vColor;
                  uniform mat4 model;
                  uniform mat4 projection;
                  uniform mat4 view;
                  void main() {
                      gl_Position = projection*model*view*pos;
+                     vColor = color;
                  }`)
 	fShaderSrc := (shaders.FragmentShader)(
 		`precision mediump float;
+                 varying vec4 vColor;
                  void main() {
-                     gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+                     gl_FragColor = vColor;
                  }`)
 
 	// Link the program
@@ -77,6 +94,7 @@ func NewBox(width, height float32) *Box {
 
 	// Get variables IDs from shaders
 	posId := program.GetAttribute("pos")
+	colorId := program.GetAttribute("color")
 	projMatrixId := program.GetUniform("projection")
 	modelMatrixId := program.GetUniform("model")
 	viewMatrixId := program.GetUniform("view")
@@ -90,8 +108,10 @@ func NewBox(width, height float32) *Box {
 		Width:         width,
 		Height:        height,
 		vertices:      vertices,
+		color:         color,
 		program:       program,
 		posId:         posId,
+		colorId:       colorId,
 		projMatrixId:  projMatrixId,
 		modelMatrixId: modelMatrixId,
 		viewMatrixId:  viewMatrixId,
@@ -122,6 +142,9 @@ func (box *Box) Draw() {
 	gl.VertexAttribPointer(box.posId, 2, gl.FLOAT, false, 0, &box.vertices[0])
 	gl.EnableVertexAttribArray(box.posId)
 
+	gl.VertexAttribPointer(box.colorId, 4, gl.FLOAT, false, 0, &box.color[0])
+	gl.EnableVertexAttribArray(box.colorId)
+
 	gl.UniformMatrix4fv(int32(box.modelMatrixId), 1, false, (*float32)(&box.modelMatrix[0]))
 	gl.UniformMatrix4fv(int32(box.projMatrixId), 1, false, (*float32)(&box.projMatrix[0]))
 	gl.UniformMatrix4fv(int32(box.viewMatrixId), 1, false, (*float32)(&box.viewMatrix[0]))
@@ -130,6 +153,20 @@ func (box *Box) Draw() {
 
 	gl.Flush()
 	gl.Finish()
+}
+
+// Set the color of the shape.
+func (box *Box) Color(c color.Color) {
+	// Convert to RGBA
+	rgba := color.RGBAModel.Convert(c)
+	r, g, b, a := rgba.RGBA()
+	// Normalize the color components
+	box.color = [16]float32{
+		float32(r / 65535), float32(g / 65535), float32(b / 65535), float32(a / 65535),
+		float32(r / 65535), float32(g / 65535), float32(b / 65535), float32(a / 65535),
+		float32(r / 65535), float32(g / 65535), float32(b / 65535), float32(a / 65535),
+		float32(r / 65535), float32(g / 65535), float32(b / 65535), float32(a / 65535),
+	}
 }
 
 // String return a string representation of the original box vertices

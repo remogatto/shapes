@@ -15,8 +15,12 @@ import (
 )
 
 const (
-	distanceThreshold = 0.001
+	distanceThreshold = 0.002
 )
+
+func distanceError(distance float64, filename string) string {
+	return fmt.Sprintf("Image differs by distance %f, result saved in %s", distance, filename)
+}
 
 // Compare the result of rendering against the saved expected image.
 func testImage(filename string, act image.Image) (float64, image.Image, image.Image, error) {
@@ -47,7 +51,6 @@ func (t *TestSuite) TestBox() {
 		world := newWorld(w, h)
 		// Create a box
 		box := shapes.NewBox(100, 100)
-		box.Color = color.RGBA{1.0, 0.0, 0.0, 1.0}
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Position(float32(w/2), 0)
@@ -59,7 +62,7 @@ func (t *TestSuite) TestBox() {
 	if err != nil {
 		panic(err)
 	}
-	t.True(distance < distanceThreshold, fmt.Sprintf("Image differs, result saved in %s", outputPath))
+	t.True(distance < distanceThreshold, distanceError(distance, outputPath))
 	if t.Failed() {
 		saveExpAct("failed_"+filename, exp, act)
 	}
@@ -72,7 +75,6 @@ func (t *TestSuite) TestRotatedBox() {
 		world := newWorld(w, h)
 		// Create a 100x100 pixel² box
 		box := shapes.NewBox(100, 100)
-		box.Color = color.RGBA{1.0, 0.0, 0.0, 1.0}
 		box.AttachToWorld(world)
 		// Place the box at the center of the screen
 		box.Position(float32(w/2), 0)
@@ -87,7 +89,7 @@ func (t *TestSuite) TestRotatedBox() {
 	if err != nil {
 		panic(err)
 	}
-	t.True(distance < distanceThreshold, fmt.Sprintf("Image differs, result saved in %s", outputPath))
+	t.True(distance < distanceThreshold, distanceError(distance, outputPath))
 	if t.Failed() {
 		saveExpAct("failed_"+filename, exp, act)
 	}
@@ -100,7 +102,6 @@ func (t *TestSuite) TestTranslatedBox() {
 		world := newWorld(w, h)
 		// Place a box on the center of the window
 		box := shapes.NewBox(100, 100)
-		box.Color = color.RGBA{1.0, 0.0, 0.0, 1.0}
 		box.AttachToWorld(world)
 		box.Position(100, -140)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
@@ -112,7 +113,32 @@ func (t *TestSuite) TestTranslatedBox() {
 	if err != nil {
 		panic(err)
 	}
-	t.True(distance < distanceThreshold, fmt.Sprintf("Image differs, result saved in %s", outputPath))
+	t.True(distance < distanceThreshold, distanceError(distance, outputPath))
+	if t.Failed() {
+		saveExpAct("failed_"+filename, exp, act)
+	}
+}
+
+func (t *TestSuite) TestColoredBox() {
+	filename := "expected_box_yellow.png"
+	t.rlControl.drawFunc <- func() {
+		w, h := t.renderState.window.GetSize()
+		world := newWorld(w, h)
+		box := shapes.NewBox(100, 100)
+		// Color is yellow
+		box.Color(color.RGBA{255, 255, 0, 255})
+		box.AttachToWorld(world)
+		box.Position(float32(w/2), 0)
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+		box.Draw()
+		t.testDraw <- testlib.Screenshot(t.renderState.window)
+		t.renderState.window.SwapBuffers()
+	}
+	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	if err != nil {
+		panic(err)
+	}
+	t.True(distance < distanceThreshold, distanceError(distance, outputPath))
 	if t.Failed() {
 		saveExpAct("failed_"+filename, exp, act)
 	}

@@ -236,10 +236,28 @@ func saveExpAct(filename string, exp image.Image, act image.Image) {
 	// Composite expected over actual
 	draw.DrawMask(dstImage, r, exp, image.ZP, &image.Uniform{color.RGBA{A: 64}}, image.ZP, draw.Over)
 
-	file, _ := os.Create(filepath.Join(outputPath, filename))
+	_, err := os.Stat(outputPath)
+	if os.IsNotExist(err) {
+		// Create the output dir
+		err := os.Mkdir(outputPath, 0777)
+		if err != nil {
+			panic(err)
+		}
+	} else if err != nil {
+		panic(err)
+	}
+
+	// Save the output file
+	file, err := os.Create(filepath.Join(outputPath, filename))
+	if err != nil {
+		panic(err)
+	}
 	defer file.Close()
 
-	png.Encode(file, dstImage)
+	err = png.Encode(file, dstImage)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func NewTestSuite() *TestSuite {
