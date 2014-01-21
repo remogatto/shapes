@@ -23,7 +23,6 @@ const (
 	FramesPerSecond = 15
 
 	expectedImgPath = "res/drawable"
-	outputPath      = "output"
 )
 
 type world struct {
@@ -41,6 +40,7 @@ type TestSuite struct {
 	testDraw chan image.Image
 
 	renderState *renderState
+	outputPath  string
 }
 
 type renderLoopControl struct {
@@ -213,7 +213,7 @@ func (w *world) View() mathgl.Mat4f {
 
 // Create an image containing both expected and actual images, side by
 // side.
-func saveExpAct(filename string, exp image.Image, act image.Image) {
+func saveExpAct(outputPath string, filename string, exp image.Image, act image.Image) {
 	rect := exp.Bounds()
 	dstRect := image.Rect(rect.Min.X, rect.Min.Y, rect.Max.X*3, rect.Max.Y)
 	dstImage := image.NewRGBA(dstRect)
@@ -260,9 +260,10 @@ func saveExpAct(filename string, exp image.Image, act image.Image) {
 	}
 }
 
-func NewTestSuite() *TestSuite {
+func NewTestSuite(outputPath string) *TestSuite {
 	return &TestSuite{
-		rlControl: newRenderLoopControl(),
-		testDraw:  make(chan image.Image),
+		rlControl:  newRenderLoopControl(),
+		testDraw:   make(chan image.Image),
+		outputPath: outputPath,
 	}
 }

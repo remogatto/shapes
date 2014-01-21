@@ -62,9 +62,9 @@ func (t *TestSuite) TestBox() {
 	if err != nil {
 		panic(err)
 	}
-	t.True(distance < distanceThreshold, distanceError(distance, outputPath))
+	t.True(distance < distanceThreshold, distanceError(distance, filename))
 	if t.Failed() {
-		saveExpAct("failed_"+filename, exp, act)
+		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
 	}
 }
 
@@ -89,9 +89,9 @@ func (t *TestSuite) TestRotatedBox() {
 	if err != nil {
 		panic(err)
 	}
-	t.True(distance < distanceThreshold, distanceError(distance, outputPath))
+	t.True(distance < distanceThreshold, distanceError(distance, filename))
 	if t.Failed() {
-		saveExpAct("failed_"+filename, exp, act)
+		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
 	}
 }
 
@@ -113,9 +113,9 @@ func (t *TestSuite) TestTranslatedBox() {
 	if err != nil {
 		panic(err)
 	}
-	t.True(distance < distanceThreshold, distanceError(distance, outputPath))
+	t.True(distance < distanceThreshold, distanceError(distance, filename))
 	if t.Failed() {
-		saveExpAct("failed_"+filename, exp, act)
+		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
 	}
 }
 
@@ -138,9 +138,9 @@ func (t *TestSuite) TestColoredBox() {
 	if err != nil {
 		panic(err)
 	}
-	t.True(distance < distanceThreshold, distanceError(distance, outputPath))
+	t.True(distance < distanceThreshold, distanceError(distance, filename))
 	if t.Failed() {
-		saveExpAct("failed_"+filename, exp, act)
+		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
 	}
 }
 
@@ -162,8 +162,8 @@ func (t *TestSuite) TestLine() {
 	if err != nil {
 		panic(err)
 	}
-	t.True(distance < 0.0009, distanceError(distance, outputPath))
+	t.True(distance < 0.0009, distanceError(distance, filename))
 	if t.Failed() {
-		saveExpAct("failed_"+filename, exp, act)
+		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
 	}
 }

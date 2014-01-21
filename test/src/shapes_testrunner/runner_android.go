@@ -11,6 +11,10 @@ import (
 	"github.com/remogatto/prettytest"
 )
 
+const (
+	outputPath = "/data/data/net.mandala.test.shapes_testrunner/files/"
+)
+
 type T struct{}
 
 func (t T) Fail() {}
@@ -25,6 +29,6 @@ func main() {
 	go prettytest.RunWithFormatter(
 		t,
 		new(mandalatest.TDDFormatter),
-		testlib.NewTestSuite(),
+		testlib.NewTestSuite(outputPath),
 	)
 }

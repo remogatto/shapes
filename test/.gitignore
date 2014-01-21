@@ -5,4 +5,5 @@ output
 pkg
 bin
 artifacts
+output_android/
 

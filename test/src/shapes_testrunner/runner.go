@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	Width  = 320
-	Height = 480
+	Width      = 320
+	Height     = 480
+	outputPath = "output"
 )
 
 func main() {
@@ -40,7 +41,7 @@ func main() {
 
 	mandala.Init(window)
 
-	go prettytest.Run(new(testing.T), testlib.NewTestSuite())
+	go prettytest.Run(new(testing.T), testlib.NewTestSuite(outputPath))
 
 	for !window.ShouldClose() {
 		glfw.WaitEvents()
