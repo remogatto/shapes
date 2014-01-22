@@ -214,27 +214,45 @@ func (w *world) View() mathgl.Mat4f {
 // Create an image containing both expected and actual images, side by
 // side.
 func saveExpAct(outputPath string, filename string, exp image.Image, act image.Image) {
-	rect := exp.Bounds()
-	dstRect := image.Rect(rect.Min.X, rect.Min.Y, rect.Max.X*3, rect.Max.Y)
+
+	// Build the destination rectangle
+	expRect := exp.Bounds()
+	actRect := act.Bounds()
+	unionRect := expRect.Union(actRect)
+	dstRect := image.Rectangle{
+		image.ZP,
+		image.Point{unionRect.Max.X * 3, unionRect.Max.Y},
+	}
+
+	// Create the empty destination image
 	dstImage := image.NewRGBA(dstRect)
 
 	// Copy the expected image
-	dp := image.Point{0, 0}
-	r := image.Rectangle{dp, dp.Add(rect.Size())}
+	dp := image.Point{
+		(unionRect.Max.X-unionRect.Min.X)/2 - (expRect.Max.X-expRect.Min.X)/2,
+		(unionRect.Max.Y-unionRect.Min.Y)/2 - (expRect.Max.Y-expRect.Min.Y)/2,
+	}
+	r := image.Rectangle{dp, dp.Add(expRect.Size())}
 	draw.Draw(dstImage, r, exp, image.ZP, draw.Src)
 
 	// Copy the actual image
-	dp = image.Point{rect.Max.X, 0}
-	r = image.Rectangle{dp, dp.Add(rect.Size())}
+	dp = image.Point{
+		(unionRect.Max.X-unionRect.Min.X)/2 - (actRect.Max.X-expRect.Min.X)/2,
+		(unionRect.Max.Y-unionRect.Min.Y)/2 - (actRect.Max.Y-expRect.Min.Y)/2,
+	}
+	dp = dp.Add(image.Point{unionRect.Max.X, 0})
+	r = image.Rectangle{dp, dp.Add(actRect.Size())}
 	draw.Draw(dstImage, r, act, image.ZP, draw.Src)
 
 	// Re-copy the actual image
-	dp = image.Point{rect.Max.X * 2, 0}
-	r = image.Rectangle{dp, dp.Add(rect.Size())}
+	dp = dp.Add(image.Point{unionRect.Max.X, 0})
+	r = image.Rectangle{dp, dp.Add(actRect.Size())}
 	draw.Draw(dstImage, r, act, image.ZP, draw.Src)
 
 	// Composite expected over actual
-	draw.DrawMask(dstImage, r, exp, image.ZP, &image.Uniform{color.RGBA{A: 64}}, image.ZP, draw.Over)
+	dp = image.Point{dp.X, unionRect.Min.Y}
+	dstRect = image.Rectangle{dp, dp.Add(expRect.Size())}
+	draw.DrawMask(dstImage, dstRect, exp, image.ZP, &image.Uniform{color.RGBA{A: 64}}, image.ZP, draw.Over)
 
 	_, err := os.Stat(outputPath)
 	if os.IsNotExist(err) {

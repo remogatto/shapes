@@ -14,7 +14,7 @@ import (
 
 const (
 	Width      = 320
-	Height     = 480
+	Height     = 240
 	outputPath = "output"
 )
 

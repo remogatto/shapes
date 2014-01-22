@@ -41,7 +41,7 @@ func testImage(filename string, act image.Image) (float64, image.Image, image.Im
 	if err != nil {
 		return 1, nil, nil, err
 	}
-	return imagetest.CompareDistance(exp, act), exp, act, nil
+	return imagetest.CompareDistance(exp, act, imagetest.Center), exp, act, nil
 }
 
 func (t *TestSuite) TestBox() {
@@ -103,7 +103,7 @@ func (t *TestSuite) TestTranslatedBox() {
 		// Place a box on the center of the window
 		box := shapes.NewBox(100, 100)
 		box.AttachToWorld(world)
-		box.Position(100, -140)
+		box.Position(111, 0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
