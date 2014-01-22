@@ -163,9 +163,9 @@ func (box *Box) Color(c color.Color) {
 	// Normalize the color components
 	box.color = [16]float32{
 		float32(r) / float32(65535), float32(g) / float32(65535), float32(b) / float32(65535), float32(a) / float32(65535),
-		float32(r) / float32(65535), float32(g) / float32(65535), float32(b) / float32(65535), float32(b) / float32(65535),
-		float32(r) / float32(65535), float32(g) / float32(65535), float32(b) / float32(65535), float32(b) / float32(65535),
-		float32(r) / float32(65535), float32(g) / float32(65535), float32(b) / float32(65535), float32(b) / float32(65535),
+		float32(r) / float32(65535), float32(g) / float32(65535), float32(b) / float32(65535), float32(a) / float32(65535),
+		float32(r) / float32(65535), float32(g) / float32(65535), float32(b) / float32(65535), float32(a) / float32(65535),
+		float32(r) / float32(65535), float32(g) / float32(65535), float32(b) / float32(65535), float32(a) / float32(65535),
 	}
 }
 
