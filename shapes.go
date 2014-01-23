@@ -3,10 +3,16 @@ package shapes
 import (
 	"fmt"
 	"image/color"
+	"math"
 
 	"github.com/remogatto/mathgl"
 	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/shaders"
+)
+
+var (
+	// The default color for shapes is blue.
+	DefaultColor = color.RGBA{0, 0, 0xff, 0xff}
 )
 
 type World interface {
@@ -19,25 +25,23 @@ type World interface {
 	View() mathgl.Mat4f
 }
 
-type Box struct {
-	// Center of the box
-	X, Y float32
+type shape struct {
+	x, y          float32
+	width, height float32
 
-	// Size of the box
-	Width, Height float32
+	angle float32
+	color color.Color
 
-	// Color of the box
-	color [16]float32
-
-	// Vertices of the box
-	vertices [8]float32
-
-	program shaders.Program
+	// normalized RGBA color
+	nColor [4]float32
 
 	// Matrices
 	projMatrix  mathgl.Mat4f
 	modelMatrix mathgl.Mat4f
 	viewMatrix  mathgl.Mat4f
+
+	// GLSL program
+	program shaders.Program
 
 	// GLSL variables IDs
 	colorId       uint32
@@ -47,25 +51,80 @@ type Box struct {
 	viewMatrixId  uint32
 }
 
+func (shape *shape) GetSize() (float32, float32) {
+	return shape.width, shape.height
+}
+
+func (shape *shape) Center() (float32, float32) {
+	return shape.x, shape.y
+}
+
+func (shape *shape) Angle() float32 {
+	return shape.angle
+}
+
+// AttachToWorld fills projection and view matrices.
+func (shape *shape) AttachToWorld(world World) {
+	shape.projMatrix = world.Projection()
+	shape.viewMatrix = world.View()
+}
+
+// Rotate the box around its center, by the given angle (in degrees).
+func (shape *shape) Rotate(angle float32) {
+	shape.modelMatrix = mathgl.Translate3D(shape.x, shape.y, 0).Mul4(mathgl.HomogRotate3DZ(angle))
+	shape.angle = angle
+}
+
+// Place the box at the given position
+func (shape *shape) Position(x, y float32) {
+	shape.modelMatrix = mathgl.Translate3D(x, y, 0)
+	shape.x, shape.y = x, y
+}
+
+// Set the color of the shape.
+func (shape *shape) Color(c color.Color) {
+	// Convert to RGBA
+	rgba := color.NRGBAModel.Convert(c).(color.NRGBA)
+	r, g, b, a := rgba.R, rgba.G, rgba.B, rgba.A
+
+	// Normalize the color components
+	shape.nColor = [4]float32{
+		float32(r) / 255,
+		float32(g) / 255,
+		float32(b) / 255,
+		float32(a) / 255,
+	}
+}
+
+// Get the color of the shape.
+func (shape *shape) GetColor() color.Color {
+	return shape.color
+}
+
+type Box struct {
+	shape
+
+	// 4x4 color matrix (four color component for each vertex)
+	vertexColor [16]float32
+
+	// Vertices of the box
+	vertices [8]float32
+}
+
 func NewBox(width, height float32) *Box {
 
+	box := new(Box)
+
 	// The box is built around its center
-	vertices := [8]float32{
+	box.vertices = [8]float32{
 		-width / 2, -height / 2,
 		width / 2, -height / 2,
 		-width / 2, height / 2,
 		width / 2, height / 2,
 	}
 
-	// Default color is blue
-	color := [16]float32{
-		0, 0, 1, 1,
-		0, 0, 1, 1,
-		0, 0, 1, 1,
-		0, 0, 1, 1,
-	}
-
-	x, y := width/2, height/2
+	// Set the default color
+	box.Color(DefaultColor)
 
 	// Shader sources
 
@@ -90,59 +149,47 @@ func NewBox(width, height float32) *Box {
 
 	// Link the program
 	program := shaders.NewProgram(vShaderSrc.Compile(), fShaderSrc.Compile())
-	program.Use()
+	box.program = program
+	box.program.Use()
 
 	// Get variables IDs from shaders
-	posId := program.GetAttribute("pos")
-	colorId := program.GetAttribute("color")
-	projMatrixId := program.GetUniform("projection")
-	modelMatrixId := program.GetUniform("model")
-	viewMatrixId := program.GetUniform("view")
+	box.posId = program.GetAttribute("pos")
+	box.colorId = program.GetAttribute("color")
+	box.projMatrixId = program.GetUniform("projection")
+	box.modelMatrixId = program.GetUniform("model")
+	box.viewMatrixId = program.GetUniform("view")
 
 	// Fill the model matrix with the identity.
-	modelMatrix := mathgl.Ident4f()
+	box.modelMatrix = mathgl.Ident4f()
 
-	return &Box{
-		X:             x,
-		Y:             y,
-		Width:         width,
-		Height:        height,
-		vertices:      vertices,
-		color:         color,
-		program:       program,
-		posId:         posId,
-		colorId:       colorId,
-		projMatrixId:  projMatrixId,
-		modelMatrixId: modelMatrixId,
-		viewMatrixId:  viewMatrixId,
-		modelMatrix:   modelMatrix,
-	}
-}
+	// Size of the box
+	box.width = width
+	box.height = height
 
-// AttachToWorld fills projection and view matrices.
-func (box *Box) AttachToWorld(world World) {
-	box.projMatrix = world.Projection()
-	box.viewMatrix = world.View()
-}
+	// Center of the box
+	box.x = width / 2
+	box.y = height / 2
 
-// Rotate the box around its center, by the given angle (in degrees).
-func (box *Box) Rotate(angle float32) {
-	box.modelMatrix = mathgl.Translate3D(box.X, box.Y, 0).Mul4(mathgl.HomogRotate3DZ(angle))
-}
-
-// Place the box at the given position
-func (box *Box) Position(x, y float32) {
-	box.X, box.Y = x, y
-	box.modelMatrix = mathgl.Translate3D(x, y, 0)
+	return box
 }
 
 // Draw actually renders the object on the surface.
 func (box *Box) Draw() {
+
+	// Color is the same for each vertex
+	vertexColor := [16]float32{
+		box.nColor[0], box.nColor[1], box.nColor[2], box.nColor[3],
+		box.nColor[0], box.nColor[1], box.nColor[2], box.nColor[3],
+		box.nColor[0], box.nColor[1], box.nColor[2], box.nColor[3],
+		box.nColor[0], box.nColor[1], box.nColor[2], box.nColor[3],
+	}
+
 	box.program.Use()
+
 	gl.VertexAttribPointer(box.posId, 2, gl.FLOAT, false, 0, &box.vertices[0])
 	gl.EnableVertexAttribArray(box.posId)
 
-	gl.VertexAttribPointer(box.colorId, 4, gl.FLOAT, false, 0, &box.color[0])
+	gl.VertexAttribPointer(box.colorId, 4, gl.FLOAT, false, 0, &vertexColor[0])
 	gl.EnableVertexAttribArray(box.colorId)
 
 	gl.UniformMatrix4fv(int32(box.modelMatrixId), 1, false, (*float32)(&box.modelMatrix[0]))
@@ -155,20 +202,6 @@ func (box *Box) Draw() {
 	gl.Finish()
 }
 
-// Set the color of the shape.
-func (box *Box) Color(c color.Color) {
-	// Convert to RGBA
-	rgba := color.RGBAModel.Convert(c)
-	r, g, b, a := rgba.RGBA()
-	// Normalize the color components
-	box.color = [16]float32{
-		float32(r) / 65535, float32(g) / 65535, float32(b) / 65535, float32(a) / 65535,
-		float32(r) / 65535, float32(g) / 65535, float32(b) / 65535, float32(a) / 65535,
-		float32(r) / 65535, float32(g) / 65535, float32(b) / 65535, float32(a) / 65535,
-		float32(r) / 65535, float32(g) / 65535, float32(b) / 65535, float32(a) / 65535,
-	}
-}
-
 // String return a string representation of the original box vertices
 // (before transformation).
 func (box *Box) String() string {
@@ -176,34 +209,39 @@ func (box *Box) String() string {
 }
 
 type Line struct {
+	shape
+
 	// Points of the line
-	X1, Y1, X2, Y2 float32
-
-	// Color of the line
-	color [8]float32
-
-	program shaders.Program
-
-	// Matrices
-	projMatrix  mathgl.Mat4f
-	modelMatrix mathgl.Mat4f
-	viewMatrix  mathgl.Mat4f
-
-	// GLSL variables IDs
-	colorId       uint32
-	posId         uint32
-	projMatrixId  uint32
-	modelMatrixId uint32
-	viewMatrixId  uint32
+	x1, y1, x2, y2 float32
+	vertices       [4]float32
 }
 
 func NewLine(x1, y1, x2, y2 float32) *Line {
 
-	// Default color is blue
-	color := [8]float32{
-		0, 0, 1, 1,
-		0, 0, 1, 1,
+	line := new(Line)
+
+	// Set the default color
+
+	line.Color(DefaultColor)
+
+	// Set the geometry
+
+	line.x1, line.x2 = x1, x2
+	line.y1, line.y2 = y1, y2
+
+	line.vertices = [4]float32{
+		line.x1, line.y1,
+		line.x2, line.y2,
 	}
+
+	// Size of the line bounding box
+
+	line.width = float32(math.Abs(float64(x1 - x2)))
+	line.height = float32(math.Abs(float64(y1 - y2)))
+
+	// Center of the line
+	line.x = (line.x1 + line.x2) / 2
+	line.y = (line.y1 + line.y2) / 2
 
 	// Shader sources
 
@@ -227,54 +265,35 @@ func NewLine(x1, y1, x2, y2 float32) *Line {
                  }`)
 
 	// Link the program
-	program := shaders.NewProgram(vShaderSrc.Compile(), fShaderSrc.Compile())
-	program.Use()
+	line.program = shaders.NewProgram(vShaderSrc.Compile(), fShaderSrc.Compile())
+	line.program.Use()
 
 	// Get variables IDs from shaders
-	posId := program.GetAttribute("pos")
-	colorId := program.GetAttribute("color")
-	projMatrixId := program.GetUniform("projection")
-	modelMatrixId := program.GetUniform("model")
-	viewMatrixId := program.GetUniform("view")
+	line.posId = line.program.GetAttribute("pos")
+	line.colorId = line.program.GetAttribute("color")
+	line.projMatrixId = line.program.GetUniform("projection")
+	line.modelMatrixId = line.program.GetUniform("model")
+	line.viewMatrixId = line.program.GetUniform("view")
 
 	// Fill the model matrix with the identity.
-	modelMatrix := mathgl.Ident4f()
+	line.modelMatrix = mathgl.Ident4f()
 
-	return &Line{
-		X1:            x1,
-		Y1:            y1,
-		X2:            x2,
-		Y2:            y2,
-		color:         color,
-		program:       program,
-		posId:         posId,
-		colorId:       colorId,
-		projMatrixId:  projMatrixId,
-		modelMatrixId: modelMatrixId,
-		viewMatrixId:  viewMatrixId,
-		modelMatrix:   modelMatrix,
-	}
-}
-
-// AttachToWorld fills projection and view matrices.
-func (line *Line) AttachToWorld(world World) {
-	line.projMatrix = world.Projection()
-	line.viewMatrix = world.View()
+	return line
 }
 
 // Draw actually renders the object on the surface.
 func (line *Line) Draw() {
-
-	vertices := [4]float32{
-		line.X1, line.Y1,
-		line.X2, line.Y2,
+	// Color is the same for each vertex
+	vertexColor := [8]float32{
+		line.nColor[0], line.nColor[1], line.nColor[2], line.nColor[3],
+		line.nColor[0], line.nColor[1], line.nColor[2], line.nColor[3],
 	}
 
 	line.program.Use()
-	gl.VertexAttribPointer(line.posId, 2, gl.FLOAT, false, 0, &vertices[0])
+	gl.VertexAttribPointer(line.posId, 2, gl.FLOAT, false, 0, &line.vertices[0])
 	gl.EnableVertexAttribArray(line.posId)
 
-	gl.VertexAttribPointer(line.colorId, 4, gl.FLOAT, false, 0, &line.color[0])
+	gl.VertexAttribPointer(line.colorId, 4, gl.FLOAT, false, 0, &vertexColor[0])
 	gl.EnableVertexAttribArray(line.colorId)
 
 	gl.UniformMatrix4fv(int32(line.modelMatrixId), 1, false, (*float32)(&line.modelMatrix[0]))
@@ -287,20 +306,8 @@ func (line *Line) Draw() {
 	gl.Finish()
 }
 
-// Set the color of the shape.
-func (line *Line) Color(c color.Color) {
-	// Convert to RGBA
-	rgba := color.RGBAModel.Convert(c)
-	r, g, b, a := rgba.RGBA()
-	// Normalize the color components
-	line.color = [8]float32{
-		float32(r / 65535), float32(g / 65535), float32(b / 65535), float32(a / 65535),
-		float32(r / 65535), float32(g / 65535), float32(b / 65535), float32(a / 65535),
-	}
-}
-
 // String return a string representation of the original box vertices
 // (before transformation).
 func (line *Line) String() string {
-	return fmt.Sprintf("x1: %f y1: %f x2: %f y2: %f", line.X1, line.Y1, line.X2, line.Y2)
+	return fmt.Sprintf("x1: %f y1: %f x2: %f y2: %f", line.x1, line.y1, line.x2, line.y2)
 }
