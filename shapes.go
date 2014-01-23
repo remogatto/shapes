@@ -162,10 +162,10 @@ func (box *Box) Color(c color.Color) {
 	r, g, b, a := rgba.RGBA()
 	// Normalize the color components
 	box.color = [16]float32{
-		float32(r) / float32(65535), float32(g) / float32(65535), float32(b) / float32(65535), float32(a) / float32(65535),
-		float32(r) / float32(65535), float32(g) / float32(65535), float32(b) / float32(65535), float32(a) / float32(65535),
-		float32(r) / float32(65535), float32(g) / float32(65535), float32(b) / float32(65535), float32(a) / float32(65535),
-		float32(r) / float32(65535), float32(g) / float32(65535), float32(b) / float32(65535), float32(a) / float32(65535),
+		float32(r) / 65535, float32(g) / 65535, float32(b) / 65535, float32(a) / 65535,
+		float32(r) / 65535, float32(g) / 65535, float32(b) / 65535, float32(a) / 65535,
+		float32(r) / 65535, float32(g) / 65535, float32(b) / 65535, float32(a) / 65535,
+		float32(r) / 65535, float32(g) / 65535, float32(b) / 65535, float32(a) / 65535,
 	}
 }
 
