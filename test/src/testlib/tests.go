@@ -44,6 +44,52 @@ func testImage(filename string, act image.Image) (float64, image.Image, image.Im
 	return imagetest.CompareDistance(exp, act, imagetest.Center), exp, act, nil
 }
 
+func (t *TestSuite) TestShape() {
+	box := shapes.NewBox(10, 20)
+
+	// Color
+
+	c := box.GetColor()
+	nc := box.GetNColor()
+	t.Equal(color.RGBA{0, 0, 255, 255}, c)
+	t.Equal([4]float32{0, 0, 1, 1}, nc)
+
+	box.Color(color.RGBA{0xaa, 0xaa, 0xaa, 0xff})
+	c = box.GetColor()
+	nc = box.GetNColor()
+	t.Equal(color.RGBA{170, 170, 170, 255}, c)
+	t.Equal([4]float32{0.6666667, 0.6666667, 0.6666667, 1}, nc)
+
+	// GetSize
+
+	w, h := box.GetSize()
+	t.True(w == 10)
+	t.True(h == 20)
+
+	// Center
+
+	x, y := box.Center()
+	t.Equal(float32(0), x)
+	t.Equal(float32(0), y)
+
+	// Center after translation
+
+	winW, winH := t.renderState.window.GetSize()
+	world := newWorld(winW, winH)
+	box.AttachToWorld(world)
+	box.Position(10, 20)
+
+	x, y = box.Center()
+	t.Equal(float32(10), x)
+	t.Equal(float32(20), y)
+
+	// Angle after rotation
+
+	box.Rotate(10)
+	angle := box.Angle()
+	t.Equal(float32(10), angle)
+}
+
 func (t *TestSuite) TestBox() {
 	filename := "expected_box.png"
 	t.rlControl.drawFunc <- func() {
@@ -150,6 +196,7 @@ func (t *TestSuite) TestSegment() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 		segment := shapes.NewSegment(81.5, -40, 238.5, 44)
+
 		// Color is yellow
 		segment.Color(color.RGBA{255, 0, 0, 255})
 		segment.AttachToWorld(world)
@@ -166,4 +213,16 @@ func (t *TestSuite) TestSegment() {
 	if t.Failed() {
 		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
 	}
+}
+
+func (t *TestSuite) TestSegmentCenter() {
+	segment := shapes.NewSegment(10, 15, 20, 20)
+
+	x, y := segment.Center()
+	t.Equal(float32(15), x)
+	t.Equal(float32(17.5), y)
+
+	w, h := segment.GetSize()
+	t.Equal(float32(10), w)
+	t.Equal(float32(5), h)
 }

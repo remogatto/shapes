@@ -83,6 +83,9 @@ func (shape *shape) Position(x, y float32) {
 
 // Set the color of the shape.
 func (shape *shape) Color(c color.Color) {
+
+	shape.color = c
+
 	// Convert to RGBA
 	rgba := color.NRGBAModel.Convert(c).(color.NRGBA)
 	r, g, b, a := rgba.R, rgba.G, rgba.B, rgba.A
@@ -101,6 +104,11 @@ func (shape *shape) GetColor() color.Color {
 	return shape.color
 }
 
+// Get the color is a normalized float32 array.
+func (shape *shape) GetNColor() [4]float32 {
+	return shape.nColor
+}
+
 type Box struct {
 	shape
 
@@ -115,7 +123,7 @@ func NewBox(width, height float32) *Box {
 
 	box := new(Box)
 
-	// The box is built around its center
+	// The box is built around its center at (0, 0)
 	box.vertices = [8]float32{
 		-width / 2, -height / 2,
 		width / 2, -height / 2,
@@ -165,10 +173,6 @@ func NewBox(width, height float32) *Box {
 	// Size of the box
 	box.width = width
 	box.height = height
-
-	// Center of the box
-	box.x = width / 2
-	box.y = height / 2
 
 	return box
 }
