@@ -144,17 +144,17 @@ func (t *TestSuite) TestColoredBox() {
 	}
 }
 
-func (t *TestSuite) TestLine() {
+func (t *TestSuite) TestSegment() {
 	filename := "expected_line.png"
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
-		line := shapes.NewLine(81.5, -40, 238.5, 44)
+		segment := shapes.NewSegment(81.5, -40, 238.5, 44)
 		// Color is yellow
-		line.Color(color.RGBA{255, 0, 0, 255})
-		line.AttachToWorld(world)
+		segment.Color(color.RGBA{255, 0, 0, 255})
+		segment.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		line.Draw()
+		segment.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}

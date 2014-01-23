@@ -208,40 +208,40 @@ func (box *Box) String() string {
 	return fmt.Sprintf("%v", box.vertices)
 }
 
-type Line struct {
+type Segment struct {
 	shape
 
-	// Points of the line
+	// Points of the segment
 	x1, y1, x2, y2 float32
 	vertices       [4]float32
 }
 
-func NewLine(x1, y1, x2, y2 float32) *Line {
+func NewSegment(x1, y1, x2, y2 float32) *Segment {
 
-	line := new(Line)
+	segment := new(Segment)
 
 	// Set the default color
 
-	line.Color(DefaultColor)
+	segment.Color(DefaultColor)
 
 	// Set the geometry
 
-	line.x1, line.x2 = x1, x2
-	line.y1, line.y2 = y1, y2
+	segment.x1, segment.x2 = x1, x2
+	segment.y1, segment.y2 = y1, y2
 
-	line.vertices = [4]float32{
-		line.x1, line.y1,
-		line.x2, line.y2,
+	segment.vertices = [4]float32{
+		segment.x1, segment.y1,
+		segment.x2, segment.y2,
 	}
 
-	// Size of the line bounding box
+	// Size of the segment bounding box
 
-	line.width = float32(math.Abs(float64(x1 - x2)))
-	line.height = float32(math.Abs(float64(y1 - y2)))
+	segment.width = float32(math.Abs(float64(x1 - x2)))
+	segment.height = float32(math.Abs(float64(y1 - y2)))
 
-	// Center of the line
-	line.x = (line.x1 + line.x2) / 2
-	line.y = (line.y1 + line.y2) / 2
+	// Center of the segment
+	segment.x = (segment.x1 + segment.x2) / 2
+	segment.y = (segment.y1 + segment.y2) / 2
 
 	// Shader sources
 
@@ -265,40 +265,40 @@ func NewLine(x1, y1, x2, y2 float32) *Line {
                  }`)
 
 	// Link the program
-	line.program = shaders.NewProgram(vShaderSrc.Compile(), fShaderSrc.Compile())
-	line.program.Use()
+	segment.program = shaders.NewProgram(vShaderSrc.Compile(), fShaderSrc.Compile())
+	segment.program.Use()
 
 	// Get variables IDs from shaders
-	line.posId = line.program.GetAttribute("pos")
-	line.colorId = line.program.GetAttribute("color")
-	line.projMatrixId = line.program.GetUniform("projection")
-	line.modelMatrixId = line.program.GetUniform("model")
-	line.viewMatrixId = line.program.GetUniform("view")
+	segment.posId = segment.program.GetAttribute("pos")
+	segment.colorId = segment.program.GetAttribute("color")
+	segment.projMatrixId = segment.program.GetUniform("projection")
+	segment.modelMatrixId = segment.program.GetUniform("model")
+	segment.viewMatrixId = segment.program.GetUniform("view")
 
 	// Fill the model matrix with the identity.
-	line.modelMatrix = mathgl.Ident4f()
+	segment.modelMatrix = mathgl.Ident4f()
 
-	return line
+	return segment
 }
 
 // Draw actually renders the object on the surface.
-func (line *Line) Draw() {
+func (segment *Segment) Draw() {
 	// Color is the same for each vertex
 	vertexColor := [8]float32{
-		line.nColor[0], line.nColor[1], line.nColor[2], line.nColor[3],
-		line.nColor[0], line.nColor[1], line.nColor[2], line.nColor[3],
+		segment.nColor[0], segment.nColor[1], segment.nColor[2], segment.nColor[3],
+		segment.nColor[0], segment.nColor[1], segment.nColor[2], segment.nColor[3],
 	}
 
-	line.program.Use()
-	gl.VertexAttribPointer(line.posId, 2, gl.FLOAT, false, 0, &line.vertices[0])
-	gl.EnableVertexAttribArray(line.posId)
+	segment.program.Use()
+	gl.VertexAttribPointer(segment.posId, 2, gl.FLOAT, false, 0, &segment.vertices[0])
+	gl.EnableVertexAttribArray(segment.posId)
 
-	gl.VertexAttribPointer(line.colorId, 4, gl.FLOAT, false, 0, &vertexColor[0])
-	gl.EnableVertexAttribArray(line.colorId)
+	gl.VertexAttribPointer(segment.colorId, 4, gl.FLOAT, false, 0, &vertexColor[0])
+	gl.EnableVertexAttribArray(segment.colorId)
 
-	gl.UniformMatrix4fv(int32(line.modelMatrixId), 1, false, (*float32)(&line.modelMatrix[0]))
-	gl.UniformMatrix4fv(int32(line.projMatrixId), 1, false, (*float32)(&line.projMatrix[0]))
-	gl.UniformMatrix4fv(int32(line.viewMatrixId), 1, false, (*float32)(&line.viewMatrix[0]))
+	gl.UniformMatrix4fv(int32(segment.modelMatrixId), 1, false, (*float32)(&segment.modelMatrix[0]))
+	gl.UniformMatrix4fv(int32(segment.projMatrixId), 1, false, (*float32)(&segment.projMatrix[0]))
+	gl.UniformMatrix4fv(int32(segment.viewMatrixId), 1, false, (*float32)(&segment.viewMatrix[0]))
 
 	gl.DrawArrays(gl.LINES, 0, 2)
 
@@ -308,6 +308,6 @@ func (line *Line) Draw() {
 
 // String return a string representation of the original box vertices
 // (before transformation).
-func (line *Line) String() string {
-	return fmt.Sprintf("x1: %f y1: %f x2: %f y2: %f", line.x1, line.y1, line.x2, line.y2)
+func (segment *Segment) String() string {
+	return fmt.Sprintf("x1: %f y1: %f x2: %f y2: %f", segment.x1, segment.y1, segment.x2, segment.y2)
 }
