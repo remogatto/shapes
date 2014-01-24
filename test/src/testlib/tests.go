@@ -88,6 +88,10 @@ func (t *TestSuite) TestShape() {
 	box.Rotate(10)
 	angle := box.Angle()
 	t.Equal(float32(10), angle)
+
+	// String representation
+
+	t.Equal("(10.000000,20.000000)-(10.000000,20.000000)", box.String())
 }
 
 func (t *TestSuite) TestBox() {
