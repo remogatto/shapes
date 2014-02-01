@@ -70,13 +70,18 @@ func (shape *shape) AttachToWorld(world World) {
 	shape.viewMatrix = world.View()
 }
 
-// Rotate the box around its center, by the given angle in degrees.
+// Rotate the shape around its center, by the given angle in degrees.
 func (shape *shape) Rotate(angle float32) {
 	shape.modelMatrix = mathgl.Translate3D(shape.x, shape.y, 0).Mul4(mathgl.HomogRotate3DZ(angle))
 	shape.angle = angle
 }
 
-// Place the box at the given position
+// Scale the shape relative to its center, by the given factors.
+func (shape *shape) Scale(sx, sy float32) {
+	shape.modelMatrix = mathgl.Translate3D(shape.x, shape.y, 0).Mul4(mathgl.Scale3D(sx, sy, 1.0))
+}
+
+// Place the shape at the given position
 func (shape *shape) Position(x, y float32) {
 	shape.modelMatrix = mathgl.Translate3D(x, y, 0)
 	shape.x, shape.y = x, y
@@ -105,7 +110,7 @@ func (shape *shape) GetColor() color.Color {
 	return shape.color
 }
 
-// Get the color is a normalized float32 array.
+// Get the color as a normalized float32 array.
 func (shape *shape) GetNColor() [4]float32 {
 	return shape.nColor
 }

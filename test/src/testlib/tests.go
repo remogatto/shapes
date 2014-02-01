@@ -194,6 +194,32 @@ func (t *TestSuite) TestColoredBox() {
 	}
 }
 
+func (t *TestSuite) TestScaledBox() {
+	filename := "expected_box_scaled.png"
+	t.rlControl.drawFunc <- func() {
+		w, h := t.renderState.window.GetSize()
+		world := newWorld(w, h)
+		box := shapes.NewBox(100, 100)
+		// Color is yellow
+		box.Color(color.RGBA{0, 0, 255, 255})
+		box.AttachToWorld(world)
+		box.Position(float32(w/2), 0)
+		box.Scale(1.5, 1.5)
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+		box.Draw()
+		t.testDraw <- testlib.Screenshot(t.renderState.window)
+		t.renderState.window.SwapBuffers()
+	}
+	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	if err != nil {
+		panic(err)
+	}
+	t.True(distance < distanceThreshold, distanceError(distance, filename))
+	if t.Failed() {
+		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
+	}
+}
+
 func (t *TestSuite) TestSegment() {
 	filename := "expected_line.png"
 	t.rlControl.drawFunc <- func() {
