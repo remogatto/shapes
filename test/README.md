@@ -1,6 +1,6 @@
 # Shapes black-box test
 
-The package is tested using a black-box approach. The test pass when
+The package is tested using a black-box approach. The test passes when
 the actual image produced by the package is similar to an expected
 image within a tolerance interval. The package
 [imagetest](https://github.com/remogatto/imagetest) is used for image

@@ -1,8 +1,8 @@
 # Shapes [![GoDoc](https://godoc.org/github.com/remogatto/shapes?status.png)](http://godoc.org/github.com/remogatto/shapes)
 
 <tt>shapes</tt> is a small package for drawing simple two-dimensional
-shapes on an OpenGL ES 2 context. It could be used with
-[Mandala](https://github.com/remogatto/mandala) to represent geometric
+shapes on an OpenGL ES 2 context. Used in conjuction with
+[Mandala](https://github.com/remogatto/mandala) it provides a quick way to represent geometric
 2D objects on Android games.
 
 # Example API
