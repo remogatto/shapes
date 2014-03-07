@@ -16,6 +16,8 @@ import (
 	"github.com/remogatto/mathgl"
 	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/prettytest"
+	"github.com/remogatto/shaders"
+	"github.com/remogatto/shapes"
 )
 
 const (
@@ -49,7 +51,8 @@ type renderLoopControl struct {
 }
 
 type renderState struct {
-	window mandala.Window
+	window                     mandala.Window
+	boxProgram, segmentProgram shaders.Program
 }
 
 func (renderState *renderState) init(window mandala.Window) {
@@ -61,6 +64,9 @@ func (renderState *renderState) init(window mandala.Window) {
 	// Set the viewport
 	gl.Viewport(0, 0, gl.Sizei(width), gl.Sizei(height))
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
+
+	renderState.boxProgram = shaders.NewProgram(shapes.DefaultBoxFS, shapes.DefaultBoxVS)
+	renderState.segmentProgram = shaders.NewProgram(shapes.DefaultSegmentFS, shapes.DefaultSegmentVS)
 }
 
 func newRenderLoopControl() *renderLoopControl {

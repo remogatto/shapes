@@ -18,7 +18,7 @@ func distanceError(distance float64, filename string) string {
 }
 
 func (t *TestSuite) TestShape() {
-	box := shapes.NewBox(10, 20)
+	box := shapes.NewBox(t.renderState.boxProgram, 10, 20)
 
 	// Color
 
@@ -73,7 +73,7 @@ func (t *TestSuite) TestBox() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 		// Create a box
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Position(float32(w/2), 0)
@@ -97,7 +97,7 @@ func (t *TestSuite) TestRotatedBox() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 		// Create a 100x100 pixel² box
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		// Place the box at the center of the screen
 		box.Position(float32(w/2), 0)
@@ -124,7 +124,7 @@ func (t *TestSuite) TestTranslatedBox() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 		// Place a box on the center of the window
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		box.Position(111, 0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
@@ -147,7 +147,7 @@ func (t *TestSuite) TestColoredBox() {
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		// Color is yellow
 		box.Color(color.RGBA{255, 255, 0, 255})
 		box.AttachToWorld(world)
@@ -172,7 +172,7 @@ func (t *TestSuite) TestScaledBox() {
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		// Color is yellow
 		box.Color(color.RGBA{0, 0, 255, 255})
 		box.AttachToWorld(world)
@@ -198,7 +198,7 @@ func (t *TestSuite) TestSegment() {
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
-		segment := shapes.NewSegment(81.5, -40, 238.5, 44)
+		segment := shapes.NewSegment(t.renderState.segmentProgram, 81.5, -40, 238.5, 44)
 
 		// Color is yellow
 		segment.Color(color.RGBA{255, 0, 0, 255})
@@ -219,7 +219,7 @@ func (t *TestSuite) TestSegment() {
 }
 
 func (t *TestSuite) TestSegmentCenter() {
-	segment := shapes.NewSegment(10, 15, 20, 20)
+	segment := shapes.NewSegment(t.renderState.segmentProgram, 10, 15, 20, 20)
 
 	x, y := segment.Center()
 	t.Equal(float32(15), x)

@@ -1,10 +1,30 @@
 package shapes
 
 import (
-	gl "github.com/remogatto/opengles2"
-
 	"github.com/remogatto/mathgl"
+	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/shaders"
+)
+
+var (
+	DefaultBoxVS = (shaders.VertexShader)(
+		`precision mediump float;
+                 attribute vec4 pos;
+                 attribute vec4 color;
+                 varying vec4 vColor;
+                 uniform mat4 model;
+                 uniform mat4 projection;
+                 uniform mat4 view;
+                 void main() {
+                     gl_Position = projection*model*view*pos;
+                     vColor = color;
+                 }`)
+	DefaultBoxFS = (shaders.FragmentShader)(
+		`precision mediump float;
+                 varying vec4 vColor;
+                 void main() {
+                     gl_FragColor = vColor;
+                 }`)
 )
 
 // A Box
@@ -19,7 +39,7 @@ type Box struct {
 }
 
 // NewBox creates a new box of given sizes.
-func NewBox(width, height float32) *Box {
+func NewBox(program shaders.Program, width, height float32) *Box {
 
 	box := new(Box)
 
@@ -34,38 +54,15 @@ func NewBox(width, height float32) *Box {
 	// Set the default color
 	box.Color(DefaultColor)
 
-	// Shader sources
-
-	vShaderSrc := (shaders.VertexShader)(
-		`precision mediump float;
-                 attribute vec4 pos;
-                 attribute vec4 color;
-                 varying vec4 vColor;
-                 uniform mat4 model;
-                 uniform mat4 projection;
-                 uniform mat4 view;
-                 void main() {
-                     gl_Position = projection*model*view*pos;
-                     vColor = color;
-                 }`)
-	fShaderSrc := (shaders.FragmentShader)(
-		`precision mediump float;
-                 varying vec4 vColor;
-                 void main() {
-                     gl_FragColor = vColor;
-                 }`)
-
-	// Link the program
-	program := shaders.NewProgram(vShaderSrc.Compile(), fShaderSrc.Compile())
 	box.program = program
 	box.program.Use()
 
 	// Get variables IDs from shaders
-	box.posId = program.GetAttribute("pos")
-	box.colorId = program.GetAttribute("color")
-	box.projMatrixId = program.GetUniform("projection")
-	box.modelMatrixId = program.GetUniform("model")
-	box.viewMatrixId = program.GetUniform("view")
+	box.posId = box.program.GetAttribute("pos")
+	box.colorId = box.program.GetAttribute("color")
+	box.projMatrixId = box.program.GetUniform("projection")
+	box.modelMatrixId = box.program.GetUniform("model")
+	box.viewMatrixId = box.program.GetUniform("view")
 
 	// Fill the model matrix with the identity.
 	box.modelMatrix = mathgl.Ident4f()
