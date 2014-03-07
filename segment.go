@@ -2,10 +2,32 @@ package shapes
 
 import (
 	"math"
-
 	"github.com/remogatto/mathgl"
 	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/shaders"
+)
+
+var (
+	// Vertex shader for segment
+	DefaultSegmentVS = (shaders.VertexShader)(
+		`precision mediump float;
+                 attribute vec4 pos;
+                 attribute vec4 color;
+                 varying vec4 vColor;
+                 uniform mat4 model;
+                 uniform mat4 projection;
+                 uniform mat4 view;
+                 void main() {
+                     gl_Position = projection*model*view*pos;
+                     vColor = color;
+                 }`)
+	// Fragment shader for segment
+	DefaultSegmentFS = (shaders.FragmentShader)(
+		`precision mediump float;
+                 varying vec4 vColor;
+                 void main() {
+                     gl_FragColor = vColor;
+                 }`)
 )
 
 type Segment struct {
@@ -16,7 +38,7 @@ type Segment struct {
 	vertices       [4]float32
 }
 
-func NewSegment(x1, y1, x2, y2 float32) *Segment {
+func NewSegment(program shaders.Program, x1, y1, x2, y2 float32) *Segment {
 
 	segment := new(Segment)
 
@@ -43,29 +65,7 @@ func NewSegment(x1, y1, x2, y2 float32) *Segment {
 	segment.x = (segment.x1 + segment.x2) / 2
 	segment.y = (segment.y1 + segment.y2) / 2
 
-	// Shader sources
-
-	vShaderSrc := (shaders.VertexShader)(
-		`precision mediump float;
-                 attribute vec4 pos;
-                 attribute vec4 color;
-                 varying vec4 vColor;
-                 uniform mat4 model;
-                 uniform mat4 projection;
-                 uniform mat4 view;
-                 void main() {
-                     gl_Position = projection*model*view*pos;
-                     vColor = color;
-                 }`)
-	fShaderSrc := (shaders.FragmentShader)(
-		`precision mediump float;
-                 varying vec4 vColor;
-                 void main() {
-                     gl_FragColor = vColor;
-                 }`)
-
-	// Link the program
-	segment.program = shaders.NewProgram(vShaderSrc.Compile(), fShaderSrc.Compile())
+	segment.program = program
 	segment.program.Use()
 
 	// Get variables IDs from shaders

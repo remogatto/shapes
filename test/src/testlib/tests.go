@@ -1,18 +1,12 @@
 package testlib
 
 import (
-	"bytes"
 	"fmt"
-	"image"
 	"image/color"
-	"image/png"
-	"path/filepath"
 
-	"github.com/aded/shapes"
-	"github.com/remogatto/imagetest"
-	"github.com/remogatto/mandala"
 	"github.com/remogatto/mandala/test/src/testlib"
 	gl "github.com/remogatto/opengles2"
+	"github.com/remogatto/shapes"
 )
 
 const (
@@ -25,58 +19,8 @@ func distanceError(distance float64, filename string) string {
 	return fmt.Sprintf("Image differs by distance %f, result saved in %s", distance, filename)
 }
 
-func loadImageResource(filename string) (image.Image, error) {
-	request := mandala.LoadResourceRequest{
-		Filename: filepath.Join(expectedImgPath, filename),
-		Response: make(chan mandala.LoadResourceResponse),
-	}
-
-	mandala.ResourceManager() <- request
-	response := <-request.Response
-
-	buffer := response.Buffer
-	if response.Error != nil {
-		return nil, response.Error
-	}
-
-	img, err := png.Decode(bytes.NewReader(buffer))
-	if err != nil {
-		return nil, err
-	}
-
-	return img, nil
-}
-
-// Compare the result of rendering against the saved expected image.
-func testImage(filename string, act image.Image) (float64, image.Image, image.Image, error) {
-	// request := mandala.LoadAssetRequest{
-	// 	Filename: filepath.Join(expectedImgPath, filename),
-	// 	Response: make(chan mandala.LoadAssetResponse),
-	// }
-
-	// mandala.AssetManager() <- request
-	// response := <-request.Response
-	// buffer := response.Buffer
-
-	// if response.Error != nil {
-	// 	return 1, nil, nil, response.Error
-	// }
-
-	// exp, err := png.Decode(buffer)
-	// if err != nil {
-	// 	return 1, nil, nil, err
-	// }
-
-	exp, err := loadImageResource(filename)
-	if err != nil {
-		return 1.0, nil, nil, err
-	}
-
-	return imagetest.CompareDistance(exp, act, imagetest.Center), exp, act, nil
-}
-
 func (t *TestSuite) TestShape() {
-	box := shapes.NewBox(10, 20)
+	box := shapes.NewBox(t.renderState.boxProgram, 10, 20)
 
 	// Color
 
@@ -131,7 +75,7 @@ func (t *TestSuite) TestBox() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 		// Create a box
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Position(float32(w/2), 0)
@@ -139,7 +83,7 @@ func (t *TestSuite) TestBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
 	if err != nil {
 		panic(err)
 	}
@@ -155,7 +99,7 @@ func (t *TestSuite) TestRotatedBox() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 		// Create a 100x100 pixel² box
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		// Place the box at the center of the screen
 		box.Position(float32(w/2), 0)
@@ -166,7 +110,7 @@ func (t *TestSuite) TestRotatedBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
 	if err != nil {
 		panic(err)
 	}
@@ -182,7 +126,7 @@ func (t *TestSuite) TestTranslatedBox() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 		// Place a box on the center of the window
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		box.Position(111, 0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
@@ -190,7 +134,7 @@ func (t *TestSuite) TestTranslatedBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
 	if err != nil {
 		panic(err)
 	}
@@ -205,7 +149,7 @@ func (t *TestSuite) TestColoredBox() {
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		// Color is yellow
 		box.Color(color.RGBA{255, 255, 0, 255})
 		box.AttachToWorld(world)
@@ -215,7 +159,7 @@ func (t *TestSuite) TestColoredBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
 	if err != nil {
 		panic(err)
 	}
@@ -230,7 +174,7 @@ func (t *TestSuite) TestScaledBox() {
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		// Color is yellow
 		box.Color(color.RGBA{0, 0, 255, 255})
 		box.AttachToWorld(world)
@@ -241,7 +185,7 @@ func (t *TestSuite) TestScaledBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
 	if err != nil {
 		panic(err)
 	}
@@ -256,7 +200,7 @@ func (t *TestSuite) TestSegment() {
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
-		segment := shapes.NewSegment(81.5, -40, 238.5, 44)
+		segment := shapes.NewSegment(t.renderState.segmentProgram, 81.5, -40, 238.5, 44)
 
 		// Color is yellow
 		segment.Color(color.RGBA{255, 0, 0, 255})
@@ -266,7 +210,7 @@ func (t *TestSuite) TestSegment() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
 	if err != nil {
 		panic(err)
 	}
@@ -277,7 +221,7 @@ func (t *TestSuite) TestSegment() {
 }
 
 func (t *TestSuite) TestSegmentCenter() {
-	segment := shapes.NewSegment(10, 15, 20, 20)
+	segment := shapes.NewSegment(t.renderState.segmentProgram, 10, 15, 20, 20)
 
 	x, y := segment.Center()
 	t.Equal(float32(15), x)
@@ -294,7 +238,7 @@ func (t *TestSuite) TestTexturedBox() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 		// Create a box
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Position(float32(w/2), 0)
@@ -332,7 +276,7 @@ func (t *TestSuite) TestTexturedBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
 	if err != nil {
 		panic(err)
 	}
@@ -348,7 +292,7 @@ func (t *TestSuite) TestTexturedRotatedBox() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 		// Create a box
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Position(float32(w/2), 0)
@@ -388,7 +332,7 @@ func (t *TestSuite) TestTexturedRotatedBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
 	if err != nil {
 		panic(err)
 	}

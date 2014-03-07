@@ -1,6 +1,7 @@
 package testlib
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/color"
@@ -16,6 +17,8 @@ import (
 	"github.com/remogatto/mathgl"
 	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/prettytest"
+	"github.com/remogatto/shaders"
+	"github.com/remogatto/shapes"
 )
 
 const (
@@ -49,7 +52,8 @@ type renderLoopControl struct {
 }
 
 type renderState struct {
-	window mandala.Window
+	window                     mandala.Window
+	boxProgram, segmentProgram shaders.Program
 }
 
 func (renderState *renderState) init(window mandala.Window) {
@@ -61,6 +65,9 @@ func (renderState *renderState) init(window mandala.Window) {
 	// Set the viewport
 	gl.Viewport(0, 0, gl.Sizei(width), gl.Sizei(height))
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
+
+	renderState.boxProgram = shaders.NewProgram(shapes.DefaultBoxFS, shapes.DefaultBoxVS)
+	renderState.segmentProgram = shaders.NewProgram(shapes.DefaultSegmentFS, shapes.DefaultSegmentVS)
 }
 
 func newRenderLoopControl() *renderLoopControl {
@@ -209,6 +216,30 @@ func (w *world) Projection() mathgl.Mat4f {
 
 func (w *world) View() mathgl.Mat4f {
 	return w.viewMatrix
+}
+
+// loadImageResource loads an image with the given filename from the
+// resource folder.
+func loadImageResource(filename string) (image.Image, error) {
+	request := mandala.LoadResourceRequest{
+		Filename: filepath.Join(expectedImgPath, filename),
+		Response: make(chan mandala.LoadResourceResponse),
+	}
+
+	mandala.ResourceManager() <- request
+	response := <-request.Response
+
+	buffer := response.Buffer
+	if response.Error != nil {
+		return nil, response.Error
+	}
+
+	img, err := png.Decode(bytes.NewReader(buffer))
+	if err != nil {
+		return nil, err
+	}
+
+	return img, nil
 }
 
 // Create an image containing both expected and actual images, side by
