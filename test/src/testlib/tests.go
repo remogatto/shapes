@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 
+	"github.com/remogatto/imagetest"
 	"github.com/remogatto/mandala/test/src/testlib"
 	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/shapes"
@@ -83,7 +84,7 @@ func (t *TestSuite) TestBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
 	if err != nil {
 		panic(err)
 	}
@@ -110,7 +111,7 @@ func (t *TestSuite) TestRotatedBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
 	if err != nil {
 		panic(err)
 	}
@@ -134,7 +135,7 @@ func (t *TestSuite) TestTranslatedBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
 	if err != nil {
 		panic(err)
 	}
@@ -159,7 +160,7 @@ func (t *TestSuite) TestColoredBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
 	if err != nil {
 		panic(err)
 	}
@@ -185,7 +186,7 @@ func (t *TestSuite) TestScaledBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
 	if err != nil {
 		panic(err)
 	}
@@ -210,7 +211,7 @@ func (t *TestSuite) TestSegment() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
 	if err != nil {
 		panic(err)
 	}
@@ -276,7 +277,7 @@ func (t *TestSuite) TestTexturedBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
 	if err != nil {
 		panic(err)
 	}
@@ -332,7 +333,7 @@ func (t *TestSuite) TestTexturedRotatedBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
 	if err != nil {
 		panic(err)
 	}
