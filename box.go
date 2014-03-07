@@ -1,10 +1,41 @@
 package shapes
 
 import (
-	gl "github.com/remogatto/opengles2"
-
 	"github.com/remogatto/mathgl"
+	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/shaders"
+)
+
+var (
+	DefaultBoxVS = (shaders.VertexShader)(
+		`
+                 precision mediump float;
+                 attribute vec4 pos;
+                 attribute vec4 color;
+                 attribute vec2 texIn;
+                 varying vec2 texOut;
+                 varying vec4 vColor;
+                 uniform mat4 model;
+                 uniform mat4 projection;
+                 uniform mat4 view;
+                 void main() {
+                     gl_Position = projection*model*view*pos;
+                     vColor = color;
+                     texOut = texIn;
+                 }`)
+	DefaultBoxFS = (shaders.FragmentShader)(
+		`
+                 precision mediump float;
+                 varying vec4 vColor;
+	         varying vec2 texOut;
+                 uniform sampler2D texture;
+                 uniform float texRatio;
+                 void main() {
+                     vec2 flippedTexCoords = vec2(texOut.x, 1.0 - texOut.y);
+                     vec4 texColor = texture2D(texture, flippedTexCoords) * texRatio;
+                     vec4 vertColor = vColor * (1.0 - texRatio);
+                     gl_FragColor = texColor + vertColor;
+                 }`)
 )
 
 // A Box
@@ -19,7 +50,7 @@ type Box struct {
 }
 
 // NewBox creates a new box of given sizes.
-func NewBox(width, height float32) *Box {
+func NewBox(program shaders.Program, width, height float32) *Box {
 
 	box := new(Box)
 
@@ -34,38 +65,6 @@ func NewBox(width, height float32) *Box {
 	// Set the default color
 	box.Color(DefaultColor)
 
-	// Shader sources
-
-	vShaderSrc := (shaders.VertexShader)(
-		`precision mediump float;
-                 attribute vec4 pos;
-                 attribute vec4 color;
-                 attribute vec2 texIn;
-                 varying vec2 texOut;
-                 varying vec4 vColor;
-                 uniform mat4 model;
-                 uniform mat4 projection;
-                 uniform mat4 view;
-                 void main() {
-                     gl_Position = projection*model*view*pos;
-                     vColor = color;
-                     texOut = texIn;
-                 }`)
-	fShaderSrc := (shaders.FragmentShader)(
-		`precision mediump float;
-                 varying vec4 vColor;
-	             varying vec2 texOut;
-                 uniform sampler2D texture;
-                 uniform float texRatio;
-                 void main() {
-                     vec2 flippedTexCoords = vec2(texOut.x, 1.0 - texOut.y);
-                     vec4 texColor = texture2D(texture, flippedTexCoords) * texRatio;
-                     vec4 vertColor = vColor * (1.0 - texRatio);
-                     gl_FragColor = texColor + vertColor;
-                 }`)
-
-	// Link the program
-	program := shaders.NewProgram(vShaderSrc.Compile(), fShaderSrc.Compile())
 	box.program = program
 	box.program.Use()
 
