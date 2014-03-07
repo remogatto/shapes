@@ -22,7 +22,7 @@ const (
 	// We don't need high framerate for testing
 	FramesPerSecond = 15
 
-	expectedImgPath = "res/drawable"
+	expectedImgPath = "drawable"
 )
 
 type world struct {

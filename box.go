@@ -40,6 +40,8 @@ func NewBox(width, height float32) *Box {
 		`precision mediump float;
                  attribute vec4 pos;
                  attribute vec4 color;
+                 attribute vec2 texIn;
+                 varying vec2 texOut;
                  varying vec4 vColor;
                  uniform mat4 model;
                  uniform mat4 projection;
@@ -47,12 +49,19 @@ func NewBox(width, height float32) *Box {
                  void main() {
                      gl_Position = projection*model*view*pos;
                      vColor = color;
+                     texOut = texIn;
                  }`)
 	fShaderSrc := (shaders.FragmentShader)(
 		`precision mediump float;
                  varying vec4 vColor;
+	             varying vec2 texOut;
+                 uniform sampler2D texture;
+                 uniform float texRatio;
                  void main() {
-                     gl_FragColor = vColor;
+                     vec2 flippedTexCoords = vec2(texOut.x, 1.0 - texOut.y);
+                     vec4 texColor = texture2D(texture, flippedTexCoords) * texRatio;
+                     vec4 vertColor = vColor * (1.0 - texRatio);
+                     gl_FragColor = texColor + vertColor;
                  }`)
 
 	// Link the program
@@ -66,6 +75,9 @@ func NewBox(width, height float32) *Box {
 	box.projMatrixId = program.GetUniform("projection")
 	box.modelMatrixId = program.GetUniform("model")
 	box.viewMatrixId = program.GetUniform("view")
+	box.texInId = program.GetAttribute("texIn")
+	box.textureId = program.GetUniform("texture")
+	box.texRatioId = program.GetUniform("texRatio")
 
 	// Fill the model matrix with the identity.
 	box.modelMatrix = mathgl.Ident4f()
@@ -99,6 +111,18 @@ func (box *Box) Draw() {
 	gl.UniformMatrix4fv(int32(box.modelMatrixId), 1, false, (*float32)(&box.modelMatrix[0]))
 	gl.UniformMatrix4fv(int32(box.projMatrixId), 1, false, (*float32)(&box.projMatrix[0]))
 	gl.UniformMatrix4fv(int32(box.viewMatrixId), 1, false, (*float32)(&box.viewMatrix[0]))
+
+	gl.Uniform1f(int32(box.texRatioId), 0.0)
+
+	// Texture
+	if len(box.texCoords) > 0 {
+		gl.Uniform1f(int32(box.texRatioId), 1.0)
+		gl.VertexAttribPointer(box.texInId, 2, gl.FLOAT, false, 0, &box.texCoords[0])
+		gl.EnableVertexAttribArray(box.texInId)
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.BindTexture(gl.TEXTURE_2D, box.texBuffer)
+		gl.Uniform1i(int32(box.textureId), 0)
+	}
 
 	gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
 

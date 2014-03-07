@@ -3,6 +3,7 @@ package shapes
 import (
 	"fmt"
 	"image/color"
+	gl "github.com/remogatto/opengles2"
 
 	"github.com/remogatto/mathgl"
 	"github.com/remogatto/shaders"
@@ -47,6 +48,14 @@ type shape struct {
 	projMatrixId  uint32
 	modelMatrixId uint32
 	viewMatrixId  uint32
+	texInId       uint32
+
+	// Other texture stuff
+	texRatioId uint32
+	texBuffer  uint32
+	textureId  uint32
+
+	texCoords []float32
 }
 
 func (shape *shape) GetSize() (float32, float32) {
@@ -119,4 +128,16 @@ func (shape *shape) GetNColor() [4]float32 {
 // "(cx,cy),(w,h)".
 func (shape *shape) String() string {
 	return fmt.Sprintf("(%f,%f)-(%f,%f)", shape.x, shape.y, shape.width, shape.height)
+}
+
+func (s *shape) AttachTexture(b []byte, w, h int, texCoords []float32) error {
+	s.texCoords = texCoords
+
+	gl.GenTextures(1, &s.texBuffer)
+	gl.BindTexture(gl.TEXTURE_2D, s.texBuffer)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.Sizei(w), gl.Sizei(h), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Void(&b[0]))
+
+	return nil
 }

@@ -1,46 +1,77 @@
 package testlib
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/color"
 	"image/png"
 	"path/filepath"
 
+	"github.com/aded/shapes"
 	"github.com/remogatto/imagetest"
 	"github.com/remogatto/mandala"
 	"github.com/remogatto/mandala/test/src/testlib"
 	gl "github.com/remogatto/opengles2"
-	"github.com/remogatto/shapes"
 )
 
 const (
 	distanceThreshold = 0.002
+	texFilename       = "gopher.png"
+	texDistThreshold  = 0.004
 )
 
 func distanceError(distance float64, filename string) string {
 	return fmt.Sprintf("Image differs by distance %f, result saved in %s", distance, filename)
 }
 
+func loadImageResource(filename string) (image.Image, error) {
+	request := mandala.LoadResourceRequest{
+		Filename: filepath.Join(expectedImgPath, filename),
+		Response: make(chan mandala.LoadResourceResponse),
+	}
+
+	mandala.ResourceManager() <- request
+	response := <-request.Response
+
+	buffer := response.Buffer
+	if response.Error != nil {
+		return nil, response.Error
+	}
+
+	img, err := png.Decode(bytes.NewReader(buffer))
+	if err != nil {
+		return nil, err
+	}
+
+	return img, nil
+}
+
 // Compare the result of rendering against the saved expected image.
 func testImage(filename string, act image.Image) (float64, image.Image, image.Image, error) {
-	request := mandala.LoadAssetRequest{
-		Filename: filepath.Join(expectedImgPath, filename),
-		Response: make(chan mandala.LoadAssetResponse),
-	}
+	// request := mandala.LoadAssetRequest{
+	// 	Filename: filepath.Join(expectedImgPath, filename),
+	// 	Response: make(chan mandala.LoadAssetResponse),
+	// }
 
-	mandala.AssetManager() <- request
-	response := <-request.Response
-	buffer := response.Buffer
+	// mandala.AssetManager() <- request
+	// response := <-request.Response
+	// buffer := response.Buffer
 
-	if response.Error != nil {
-		return 1, nil, nil, response.Error
-	}
+	// if response.Error != nil {
+	// 	return 1, nil, nil, response.Error
+	// }
 
-	exp, err := png.Decode(buffer)
+	// exp, err := png.Decode(buffer)
+	// if err != nil {
+	// 	return 1, nil, nil, err
+	// }
+
+	exp, err := loadImageResource(filename)
 	if err != nil {
-		return 1, nil, nil, err
+		return 1.0, nil, nil, err
 	}
+
 	return imagetest.CompareDistance(exp, act, imagetest.Center), exp, act, nil
 }
 
@@ -255,4 +286,114 @@ func (t *TestSuite) TestSegmentCenter() {
 	w, h := segment.GetSize()
 	t.Equal(float32(10), w)
 	t.Equal(float32(5), h)
+}
+
+func (t *TestSuite) TestTexturedBox() {
+	filename := "expected_box_textured.png"
+	t.rlControl.drawFunc <- func() {
+		w, h := t.renderState.window.GetSize()
+		world := newWorld(w, h)
+		// Create a box
+		box := shapes.NewBox(100, 100)
+		box.AttachToWorld(world)
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+		box.Position(float32(w/2), 0)
+
+		texImg, err := loadImageResource(texFilename)
+		if err != nil {
+			panic(err)
+		}
+
+		bounds := texImg.Bounds()
+		texImgWidth, texImgHeight := bounds.Size().X, bounds.Size().Y
+		buffer := make([]byte, texImgWidth*texImgHeight*4)
+		index := 0
+		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+			for x := bounds.Min.X; x < bounds.Max.X; x++ {
+				r, g, b, a := texImg.At(x, y).RGBA()
+				buffer[index] = byte(r)
+				buffer[index+1] = byte(g)
+				buffer[index+2] = byte(b)
+				buffer[index+3] = byte(a)
+				index += 4
+			}
+		}
+
+		texCoords := []float32{
+			0, 0,
+			1, 0,
+			0, 1,
+			1, 1,
+		}
+
+		box.AttachTexture(buffer, texImgWidth, texImgHeight, texCoords)
+
+		box.Draw()
+		t.testDraw <- testlib.Screenshot(t.renderState.window)
+		t.renderState.window.SwapBuffers()
+	}
+	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	if err != nil {
+		panic(err)
+	}
+	t.True(distance < texDistThreshold, distanceError(distance, filename))
+	if t.Failed() {
+		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
+	}
+}
+
+func (t *TestSuite) TestTexturedRotatedBox() {
+	filename := "expected_box_textured_rotated_20.png"
+	t.rlControl.drawFunc <- func() {
+		w, h := t.renderState.window.GetSize()
+		world := newWorld(w, h)
+		// Create a box
+		box := shapes.NewBox(100, 100)
+		box.AttachToWorld(world)
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+		box.Position(float32(w/2), 0)
+
+		texImg, err := loadImageResource(texFilename)
+		if err != nil {
+			panic(err)
+		}
+
+		bounds := texImg.Bounds()
+		texImgWidth, texImgHeight := bounds.Size().X, bounds.Size().Y
+		buffer := make([]byte, texImgWidth*texImgHeight*4)
+		index := 0
+		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+			for x := bounds.Min.X; x < bounds.Max.X; x++ {
+				r, g, b, a := texImg.At(x, y).RGBA()
+				buffer[index] = byte(r)
+				buffer[index+1] = byte(g)
+				buffer[index+2] = byte(b)
+				buffer[index+3] = byte(a)
+				index += 4
+			}
+		}
+
+		texCoords := []float32{
+			0, 0,
+			1, 0,
+			0, 1,
+			1, 1,
+		}
+
+		box.AttachTexture(buffer, texImgWidth, texImgHeight, texCoords)
+
+		box.Rotate(20.0)
+
+		box.Draw()
+		t.testDraw <- testlib.Screenshot(t.renderState.window)
+		t.renderState.window.SwapBuffers()
+	}
+	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	if err != nil {
+		panic(err)
+	}
+	t.True(distance < texDistThreshold, distanceError(distance, filename))
+	if t.Failed() {
+		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
+	}
 }
