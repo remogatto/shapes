@@ -2,6 +2,7 @@ package testlib
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 
 	"github.com/remogatto/imagetest"
@@ -323,7 +324,7 @@ func (t *TestSuite) TestPartialTextureRotatedBox() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 		// Create a box
-		box := shapes.NewBox(100, 100)
+		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Position(float32(w/2), 0)
@@ -350,7 +351,7 @@ func (t *TestSuite) TestPartialTextureRotatedBox() {
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
 	if err != nil {
 		panic(err)
 	}
