@@ -304,20 +304,7 @@ func (t *TestSuite) TestTexturedBox() {
 			panic(err)
 		}
 
-		bounds := texImg.Bounds()
-		texImgWidth, texImgHeight := bounds.Size().X, bounds.Size().Y
-		buffer := make([]byte, texImgWidth*texImgHeight*4)
-		index := 0
-		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-			for x := bounds.Min.X; x < bounds.Max.X; x++ {
-				r, g, b, a := texImg.At(x, y).RGBA()
-				buffer[index] = byte(r)
-				buffer[index+1] = byte(g)
-				buffer[index+2] = byte(b)
-				buffer[index+3] = byte(a)
-				index += 4
-			}
-		}
+		buffer, texImgWidth, texImgHeight := getBufferDataFromImage(texImg)
 
 		texCoords := []float32{
 			0, 0,
@@ -358,20 +345,7 @@ func (t *TestSuite) TestTexturedRotatedBox() {
 			panic(err)
 		}
 
-		bounds := texImg.Bounds()
-		texImgWidth, texImgHeight := bounds.Size().X, bounds.Size().Y
-		buffer := make([]byte, texImgWidth*texImgHeight*4)
-		index := 0
-		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-			for x := bounds.Min.X; x < bounds.Max.X; x++ {
-				r, g, b, a := texImg.At(x, y).RGBA()
-				buffer[index] = byte(r)
-				buffer[index+1] = byte(g)
-				buffer[index+2] = byte(b)
-				buffer[index+3] = byte(a)
-				index += 4
-			}
-		}
+		buffer, texImgWidth, texImgHeight := getBufferDataFromImage(texImg)
 
 		texCoords := []float32{
 			0, 0,
@@ -396,4 +370,66 @@ func (t *TestSuite) TestTexturedRotatedBox() {
 	if t.Failed() {
 		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
 	}
+}
+
+func (t *TestSuite) TestPartialTextureRotatedBox() {
+	filename := "expected_box_partial_texture_rotated_20.png"
+	t.rlControl.drawFunc <- func() {
+		w, h := t.renderState.window.GetSize()
+		world := newWorld(w, h)
+		// Create a box
+		box := shapes.NewBox(100, 100)
+		box.AttachToWorld(world)
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+		box.Position(float32(w/2), 0)
+
+		texImg, err := loadImageResource(texFilename)
+		if err != nil {
+			panic(err)
+		}
+
+		buffer, texImgWidth, texImgHeight := getBufferDataFromImage(texImg)
+
+		texCoords := []float32{
+			0, 0,
+			0.5, 0,
+			0, 0.5,
+			0.5, 0.5,
+		}
+
+		box.AttachTexture(buffer, texImgWidth, texImgHeight, texCoords)
+
+		box.Rotate(20.0)
+
+		box.Draw()
+		t.testDraw <- testlib.Screenshot(t.renderState.window)
+		t.renderState.window.SwapBuffers()
+	}
+	distance, exp, act, err := testImage(filename, <-t.testDraw)
+	if err != nil {
+		panic(err)
+	}
+	t.True(distance < texDistThreshold, distanceError(distance, filename))
+	if t.Failed() {
+		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
+	}
+}
+
+func getBufferDataFromImage(img image.Image) ([]byte, int, int) {
+	bounds := img.Bounds()
+	imgWidth, imgHeight := bounds.Size().X, bounds.Size().Y
+	buffer := make([]byte, imgWidth*imgHeight*4)
+	index := 0
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r, g, b, a := img.At(x, y).RGBA()
+			buffer[index] = byte(r)
+			buffer[index+1] = byte(g)
+			buffer[index+2] = byte(b)
+			buffer[index+3] = byte(a)
+			index += 4
+		}
+	}
+
+	return buffer, imgWidth, imgHeight
 }
