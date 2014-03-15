@@ -40,13 +40,7 @@ var (
 
 // A Box
 type Box struct {
-	shape
-
-	// 4x4 color matrix (four color component for each vertex)
-	vertexColor [16]float32
-
-	// Vertices of the box
-	vertices [8]float32
+	Base
 }
 
 // NewBox creates a new box of given sizes.
@@ -55,7 +49,7 @@ func NewBox(program shaders.Program, width, height float32) *Box {
 	box := new(Box)
 
 	// The box is built around its center at (0, 0)
-	box.vertices = [8]float32{
+	box.vertices = []float32{
 		-width / 2, -height / 2,
 		width / 2, -height / 2,
 		-width / 2, height / 2,
@@ -63,7 +57,7 @@ func NewBox(program shaders.Program, width, height float32) *Box {
 	}
 
 	// Set the default color
-	box.Color(DefaultColor)
+	box.SetColor(DefaultColor)
 
 	box.program = program
 	box.program.Use()
@@ -82,8 +76,8 @@ func NewBox(program shaders.Program, width, height float32) *Box {
 	box.modelMatrix = mathgl.Ident4f()
 
 	// Size of the box
-	box.width = width
-	box.height = height
+	box.w = width
+	box.h = height
 
 	return box
 }

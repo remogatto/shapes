@@ -2,6 +2,7 @@ package shapes
 
 import (
 	"math"
+
 	"github.com/remogatto/mathgl"
 	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/shaders"
@@ -31,11 +32,10 @@ var (
 )
 
 type Segment struct {
-	shape
+	Base
 
 	// Points of the segment
 	x1, y1, x2, y2 float32
-	vertices       [4]float32
 }
 
 func NewSegment(program shaders.Program, x1, y1, x2, y2 float32) *Segment {
@@ -44,22 +44,22 @@ func NewSegment(program shaders.Program, x1, y1, x2, y2 float32) *Segment {
 
 	// Set the default color
 
-	segment.Color(DefaultColor)
+	segment.SetColor(DefaultColor)
 
 	// Set the geometry
 
 	segment.x1, segment.x2 = x1, x2
 	segment.y1, segment.y2 = y1, y2
 
-	segment.vertices = [4]float32{
+	segment.vertices = []float32{
 		segment.x1, segment.y1,
 		segment.x2, segment.y2,
 	}
 
 	// Size of the segment bounding box
 
-	segment.width = float32(math.Abs(float64(x1 - x2)))
-	segment.height = float32(math.Abs(float64(y1 - y2)))
+	segment.w = float32(math.Abs(float64(x1 - x2)))
+	segment.h = float32(math.Abs(float64(y1 - y2)))
 
 	// Center of the segment
 	segment.x = (segment.x1 + segment.x2) / 2

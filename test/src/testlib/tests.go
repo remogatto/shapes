@@ -5,10 +5,10 @@ import (
 	"image"
 	"image/color"
 
+	"github.com/aded/shapes"
 	"github.com/remogatto/imagetest"
 	"github.com/remogatto/mandala/test/src/testlib"
 	gl "github.com/remogatto/opengles2"
-	"github.com/remogatto/shapes"
 )
 
 const (
@@ -26,20 +26,20 @@ func (t *TestSuite) TestShape() {
 
 	// Color
 
-	c := box.GetColor()
-	nc := box.GetNColor()
+	c := box.Color()
+	nc := box.NColor()
 	t.Equal(color.RGBA{0, 0, 255, 255}, c)
 	t.Equal([4]float32{0, 0, 1, 1}, nc)
 
-	box.Color(color.RGBA{0xaa, 0xaa, 0xaa, 0xff})
-	c = box.GetColor()
-	nc = box.GetNColor()
+	box.SetColor(color.RGBA{0xaa, 0xaa, 0xaa, 0xff})
+	c = box.Color()
+	nc = box.NColor()
 	t.Equal(color.RGBA{170, 170, 170, 255}, c)
 	t.Equal([4]float32{0.6666667, 0.6666667, 0.6666667, 1}, nc)
 
 	// GetSize
 
-	w, h := box.GetSize()
+	w, h := box.Bounds()
 	t.True(w == 10)
 	t.True(h == 20)
 
@@ -54,7 +54,7 @@ func (t *TestSuite) TestShape() {
 	winW, winH := t.renderState.window.GetSize()
 	world := newWorld(winW, winH)
 	box.AttachToWorld(world)
-	box.Position(10, 20)
+	box.SetPosition(10, 20)
 
 	x, y = box.Center()
 	t.Equal(float32(10), x)
@@ -80,7 +80,7 @@ func (t *TestSuite) TestBox() {
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		box.Position(float32(w/2), 0)
+		box.SetPosition(float32(w/2), 0)
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
@@ -104,7 +104,7 @@ func (t *TestSuite) TestRotatedBox() {
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		// Place the box at the center of the screen
-		box.Position(float32(w/2), 0)
+		box.SetPosition(float32(w/2), 0)
 		// Rotate the box 20 degrees
 		box.Rotate(20.0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
@@ -130,7 +130,7 @@ func (t *TestSuite) TestTranslatedBox() {
 		// Place a box on the center of the window
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
-		box.Position(111, 0)
+		box.SetPosition(111, 0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
@@ -153,9 +153,9 @@ func (t *TestSuite) TestColoredBox() {
 		world := newWorld(w, h)
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		// Color is yellow
-		box.Color(color.RGBA{255, 255, 0, 255})
+		box.SetColor(color.RGBA{255, 255, 0, 255})
 		box.AttachToWorld(world)
-		box.Position(float32(w/2), 0)
+		box.SetPosition(float32(w/2), 0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
@@ -178,9 +178,9 @@ func (t *TestSuite) TestScaledBox() {
 		world := newWorld(w, h)
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		// Color is yellow
-		box.Color(color.RGBA{0, 0, 255, 255})
+		box.SetColor(color.RGBA{0, 0, 255, 255})
 		box.AttachToWorld(world)
-		box.Position(float32(w/2), 0)
+		box.SetPosition(float32(w/2), 0)
 		box.Scale(1.5, 1.5)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Draw()
@@ -205,7 +205,7 @@ func (t *TestSuite) TestSegment() {
 		segment := shapes.NewSegment(t.renderState.segmentProgram, 81.5, -40, 238.5, 44)
 
 		// Color is yellow
-		segment.Color(color.RGBA{255, 0, 0, 255})
+		segment.SetColor(color.RGBA{255, 0, 0, 255})
 		segment.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		segment.Draw()
@@ -229,7 +229,7 @@ func (t *TestSuite) TestSegmentCenter() {
 	t.Equal(float32(15), x)
 	t.Equal(float32(17.5), y)
 
-	w, h := segment.GetSize()
+	w, h := segment.Bounds()
 	t.Equal(float32(10), w)
 	t.Equal(float32(5), h)
 }
@@ -243,7 +243,7 @@ func (t *TestSuite) TestTexturedBox() {
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		box.Position(float32(w/2), 0)
+		box.SetPosition(float32(w/2), 0)
 
 		texImg, err := loadImageResource(texFilename)
 		if err != nil {
@@ -284,7 +284,7 @@ func (t *TestSuite) TestTexturedRotatedBox() {
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		box.Position(float32(w/2), 0)
+		box.SetPosition(float32(w/2), 0)
 
 		texImg, err := loadImageResource(texFilename)
 		if err != nil {
@@ -327,7 +327,7 @@ func (t *TestSuite) TestPartialTextureRotatedBox() {
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		box.Position(float32(w/2), 0)
+		box.SetPosition(float32(w/2), 0)
 
 		texImg, err := loadImageResource(texFilename)
 		if err != nil {
