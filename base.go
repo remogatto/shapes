@@ -65,7 +65,7 @@ func (b *Base) Scale(sx, sy float32) {
 }
 
 // Place the shape at the given position
-func (b *Base) SetPosition(x, y float32) {
+func (b *Base) Move(x, y float32) {
 	b.modelMatrix = mathgl.Translate3D(x, y, 0)
 	b.x, b.y = x, y
 }

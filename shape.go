@@ -8,7 +8,7 @@ type Shape interface {
 	Scale(sx, sy float32)
 
 	// Set position of the (center of the) shape
-	SetPosition(x, y float32)
+	Move(x, y float32)
 
 	// Renders
 	Draw()
