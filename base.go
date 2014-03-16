@@ -33,7 +33,7 @@ type Base struct {
 	// normalized RGBA color
 	nColor [4]float32
 	// color matrix (four color component for each vertex)
-	vertexColor []float32
+	vColor []float32
 
 	// Texture
 	texBuffer uint32
@@ -111,6 +111,13 @@ func (s *Base) SetColor(c color.Color) {
 		float32(b) / 255,
 		float32(a) / 255,
 	}
+
+	// TODO improve code
+	vCount := s.vertices / 2
+	s.vColor = s.vColor[:0]
+	for i := 0; i < vCount; i++ {
+		s.vColor = append(s.vColor, s.nColor[0], s.nColor[1], s.nColor[2], s.nColor[3])
+	}
 }
 
 // AttachToWorld fills projection and view matrices.
@@ -147,10 +154,4 @@ func (b *Base) AttachTexture(buf []byte, w, h int, texCoords []float32) error {
 // "(cx, cy), (w, h)".
 func (b *Base) String() string {
 	return fmt.Sprintf("(%f,%f)-(%f,%f)", b.x, b.y, b.w, b.h)
-}
-
-// Dummy method, must be implemented by "concrete" shape
-func (b *Base) Draw() {
-	// TODO Change panic with something else
-	panic("Cannot draw a generic shape")
 }

@@ -42,10 +42,6 @@ func NewSegment(program shaders.Program, x1, y1, x2, y2 float32) *Segment {
 
 	segment := new(Segment)
 
-	// Set the default color
-
-	segment.SetColor(DefaultColor)
-
 	// Set the geometry
 
 	segment.x1, segment.x2 = x1, x2
@@ -55,6 +51,9 @@ func NewSegment(program shaders.Program, x1, y1, x2, y2 float32) *Segment {
 		segment.x1, segment.y1,
 		segment.x2, segment.y2,
 	}
+
+	// Set the default color
+	segment.SetColor(DefaultColor)
 
 	// Size of the segment bounding box
 
@@ -83,17 +82,11 @@ func NewSegment(program shaders.Program, x1, y1, x2, y2 float32) *Segment {
 
 // Draw actually renders the object on the surface.
 func (segment *Segment) Draw() {
-	// Color is the same for each vertex
-	vertexColor := [8]float32{
-		segment.nColor[0], segment.nColor[1], segment.nColor[2], segment.nColor[3],
-		segment.nColor[0], segment.nColor[1], segment.nColor[2], segment.nColor[3],
-	}
-
 	segment.program.Use()
 	gl.VertexAttribPointer(segment.posId, 2, gl.FLOAT, false, 0, &segment.vertices[0])
 	gl.EnableVertexAttribArray(segment.posId)
 
-	gl.VertexAttribPointer(segment.colorId, 4, gl.FLOAT, false, 0, &vertexColor[0])
+	gl.VertexAttribPointer(segment.colorId, 4, gl.FLOAT, false, 0, &segment.vColor[0])
 	gl.EnableVertexAttribArray(segment.colorId)
 
 	gl.UniformMatrix4fv(int32(segment.modelMatrixId), 1, false, (*float32)(&segment.modelMatrix[0]))
