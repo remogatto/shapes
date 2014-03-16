@@ -2,6 +2,7 @@ package shapes
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 
 	"github.com/remogatto/mathgl"
@@ -26,7 +27,8 @@ type Base struct {
 	angle float32
 
 	// Bounds
-	w, h float32
+	bounds image.Rectangle
+	// w, h float32
 
 	// Colors
 	color color.Color
@@ -70,6 +72,10 @@ func (b *Base) Move(x, y float32) {
 	b.x, b.y = x, y
 }
 
+func (b *Base) Vertices() []float32 {
+	return b.vertices
+}
+
 // Center returns the coordinates of the transformed center of the
 // shape.
 func (b *Base) Center() (float32, float32) {
@@ -81,8 +87,9 @@ func (b *Base) Angle() float32 {
 	return b.angle
 }
 
-func (b *Base) Bounds() (float32, float32) {
-	return b.w, b.h
+func (b *Base) Bounds() image.Rectangle {
+	// return b.w, b.h
+	return b.bounds
 }
 
 // Get the color of the shape.
@@ -113,7 +120,7 @@ func (s *Base) SetColor(c color.Color) {
 	}
 
 	// TODO improve code
-	vCount := s.vertices / 2
+	vCount := len(s.vertices) / 2
 	s.vColor = s.vColor[:0]
 	for i := 0; i < vCount; i++ {
 		s.vColor = append(s.vColor, s.nColor[0], s.nColor[1], s.nColor[2], s.nColor[3])
@@ -153,5 +160,6 @@ func (b *Base) AttachTexture(buf []byte, w, h int, texCoords []float32) error {
 // String return a string representation of the shape in the form
 // "(cx, cy), (w, h)".
 func (b *Base) String() string {
-	return fmt.Sprintf("(%f,%f)-(%f,%f)", b.x, b.y, b.w, b.h)
+	size := b.bounds.Size()
+	return fmt.Sprintf("(%f,%f)-(%f,%f)", b.x, b.y, float32(size.X), float32(size.Y))
 }

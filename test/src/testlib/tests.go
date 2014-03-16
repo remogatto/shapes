@@ -38,8 +38,8 @@ func (t *TestSuite) TestShape() {
 	t.Equal([4]float32{0.6666667, 0.6666667, 0.6666667, 1}, nc)
 
 	// GetSize
-
-	w, h := box.Bounds()
+	size := box.Bounds().Size()
+	w, h := size.X, size.Y
 	t.True(w == 10)
 	t.True(h == 20)
 
@@ -229,9 +229,10 @@ func (t *TestSuite) TestSegmentCenter() {
 	t.Equal(float32(15), x)
 	t.Equal(float32(17.5), y)
 
-	w, h := segment.Bounds()
-	t.Equal(float32(10), w)
-	t.Equal(float32(5), h)
+	size := segment.Bounds().Size()
+	w, h := size.X, size.Y
+	t.Equal(10, w)
+	t.Equal(5, h)
 }
 
 func (t *TestSuite) TestTexturedBox() {

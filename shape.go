@@ -1,5 +1,7 @@
 package shapes
 
+import "image"
+
 type Shape interface {
 	// Rotate shape
 	Rotate(angle float32)
@@ -13,6 +15,9 @@ type Shape interface {
 	// Renders
 	Draw()
 
+	// Returns vertices
+	Vertices() []float32
+
 	// Returns the center coords
 	Center() (float32, float32)
 
@@ -20,7 +25,7 @@ type Shape interface {
 	Angle() float32
 
 	// Returns the bounds (width, height)
-	Bounds() (float32, float32)
+	Bounds() image.Rectangle
 
 	// String representation
 	String() string
@@ -29,5 +34,5 @@ type Shape interface {
 	AttachToWorld(world World)
 
 	// Adds a texture
-	AttachTexture(buf []byte, w, h int, texCoords []float32) error
+	// AttachTexture(buf []byte, w, h int, texCoords []float32) error
 }

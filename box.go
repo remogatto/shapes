@@ -1,6 +1,8 @@
 package shapes
 
 import (
+	"image"
+
 	"github.com/remogatto/mathgl"
 	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/shaders"
@@ -76,8 +78,12 @@ func NewBox(program shaders.Program, width, height float32) *Box {
 	box.modelMatrix = mathgl.Ident4f()
 
 	// Size of the box
-	box.w = width
-	box.h = height
+	// box.w = width
+	// box.h = height
+	box.bounds = image.Rect(
+		int(-width/2), int(-height/2),
+		int(width/2), int(height/2),
+	)
 
 	return box
 }

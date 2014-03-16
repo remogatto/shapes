@@ -1,7 +1,7 @@
 package shapes
 
 import (
-	"math"
+	"image"
 
 	"github.com/remogatto/mathgl"
 	gl "github.com/remogatto/opengles2"
@@ -56,9 +56,9 @@ func NewSegment(program shaders.Program, x1, y1, x2, y2 float32) *Segment {
 	segment.SetColor(DefaultColor)
 
 	// Size of the segment bounding box
-
-	segment.w = float32(math.Abs(float64(x1 - x2)))
-	segment.h = float32(math.Abs(float64(y1 - y2)))
+	// segment.w = float32(math.Abs(float64(x1 - x2)))
+	// segment.h = float32(math.Abs(float64(y1 - y2)))
+	segment.bounds = image.Rect(int(x1), int(y1), int(x2), int(y2))
 
 	// Center of the segment
 	segment.x = (segment.x1 + segment.x2) / 2
