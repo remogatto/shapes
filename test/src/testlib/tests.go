@@ -362,6 +362,39 @@ func (t *TestSuite) TestPartialTextureRotatedBox() {
 	}
 }
 
+func (t *TestSuite) TestGroup() {
+	// filename := "expected_group.png"
+	t.rlControl.drawFunc <- func() {
+		w, h := t.renderState.window.GetSize()
+		world := newWorld(w, h)
+
+		// Create first group, 2 parallel segments
+		group1 := shapes.NewGroup()
+		group1.Add("s1", shapes.NewSegment(t.renderState.segmentProgram, 50, 50, 100, 100))
+		group1.Add("s2", shapes.NewSegment(t.renderState.segmentProgram, 50, 60, 100, 110))
+
+		// Create the main group
+		group2 := shapes.NewGroup()
+		group2.Add("box", shapes.NewBox(t.renderState.boxProgram, 100, 100))
+		group2.Add("g1", group1)
+		group2.AttachToWorld(world)
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+		group2.Draw()
+
+		// t.testDraw <- testlib.Screenshot(t.renderState.window)
+		t.renderState.window.SwapBuffers()
+	}
+	// distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// t.True(distance < distanceThreshold, distanceError(distance, filename))
+	// if t.Failed() {
+	// 	saveExpAct(t.outputPath, "failed_"+filename, exp, act)
+	// }
+	t.True(true)
+}
+
 func getBufferDataFromImage(img image.Image) ([]byte, int, int) {
 	bounds := img.Bounds()
 	imgWidth, imgHeight := bounds.Size().X, bounds.Size().Y

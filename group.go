@@ -1,9 +1,11 @@
 package shapes
 
-import "fmt"
+import (
+	"fmt"
+	"image"
+)
 
-type children map[string]Shape
-
+// Group implements Shape too.
 type Group struct {
 	// Center
 	x, y float32
@@ -12,9 +14,15 @@ type Group struct {
 	angle float32
 
 	// Bounds
-	w, h float32
+	bounds image.Rectangle
 
-	children children
+	children map[string]Shape
+}
+
+func NewGroup() *Group {
+	return &Group{
+		children: make(map[string]Shape),
+	}
 }
 
 func (g *Group) Add(k string, s Shape) error {
@@ -25,6 +33,14 @@ func (g *Group) Add(k string, s Shape) error {
 	g.children[k] = s
 
 	// TODO recalculate center and bounds
+	if len(g.children) == 1 {
+		g.bounds = s.Bounds()
+	} else {
+		g.bounds = g.bounds.Union(s.Bounds())
+	}
+
+	g.x = float32((g.bounds.Min.X + g.bounds.Max.X) / 2)
+	g.y = float32((g.bounds.Min.Y + g.bounds.Max.Y) / 2)
 
 	return nil
 }
@@ -57,8 +73,20 @@ func (g *Group) Scale(sx, sy float32) {
 	}
 }
 
-func (g *Group) Move(x, y float32) {
-	// TODO
+func (g *Group) Move(dx, dy float32) {
+	for _, s := range g.children {
+		s.Move(dx, dy)
+	}
+}
+
+func (g *Group) Vertices() []float32 {
+	v := []float32{}
+
+	for _, s := range g.children {
+		v = append(v, s.Vertices()...)
+	}
+
+	return v
 }
 
 func (g *Group) Center() (float32, float32) {
@@ -69,8 +97,8 @@ func (g *Group) Angle() float32 {
 	return g.angle
 }
 
-func (g *Group) Bounds() (float32, float32) {
-	return g.w, g.h
+func (g *Group) Bounds() image.Rectangle {
+	return g.bounds
 }
 
 func (g *Group) String() string {

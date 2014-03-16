@@ -66,10 +66,11 @@ func (b *Base) Scale(sx, sy float32) {
 	b.modelMatrix = mathgl.Translate3D(b.x, b.y, 0).Mul4(mathgl.Scale3D(sx, sy, 1.0))
 }
 
-// Place the shape at the given position
-func (b *Base) Move(x, y float32) {
-	b.modelMatrix = mathgl.Translate3D(x, y, 0)
-	b.x, b.y = x, y
+// Move the shape by dx, dy
+func (b *Base) Move(dx, dy float32) {
+	b.x += dx
+	b.y += dy
+	b.modelMatrix = mathgl.Translate3D(b.x, b.y, 0)
 }
 
 func (b *Base) Vertices() []float32 {
