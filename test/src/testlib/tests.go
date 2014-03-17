@@ -54,7 +54,7 @@ func (t *TestSuite) TestShape() {
 	winW, winH := t.renderState.window.GetSize()
 	world := newWorld(winW, winH)
 	box.AttachToWorld(world)
-	box.Move(10, 20)
+	box.MoveTo(10, 20)
 
 	x, y = box.Center()
 	t.Equal(float32(10), x)
@@ -80,7 +80,7 @@ func (t *TestSuite) TestBox() {
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		box.Move(float32(w/2), 0)
+		box.MoveTo(float32(w/2), 0)
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
@@ -104,7 +104,7 @@ func (t *TestSuite) TestRotatedBox() {
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		// Place the box at the center of the screen
-		box.Move(float32(w/2), 0)
+		box.MoveTo(float32(w/2), 0)
 		// Rotate the box 20 degrees
 		box.Rotate(20.0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
@@ -130,7 +130,7 @@ func (t *TestSuite) TestTranslatedBox() {
 		// Place a box on the center of the window
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
-		box.Move(111, 0)
+		box.MoveTo(111, 0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
@@ -155,7 +155,7 @@ func (t *TestSuite) TestColoredBox() {
 		// Color is yellow
 		box.SetColor(color.RGBA{255, 255, 0, 255})
 		box.AttachToWorld(world)
-		box.Move(float32(w/2), 0)
+		box.MoveTo(float32(w/2), 0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
@@ -180,7 +180,7 @@ func (t *TestSuite) TestScaledBox() {
 		// Color is yellow
 		box.SetColor(color.RGBA{0, 0, 255, 255})
 		box.AttachToWorld(world)
-		box.Move(float32(w/2), 0)
+		box.MoveTo(float32(w/2), 0)
 		box.Scale(1.5, 1.5)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.Draw()
@@ -244,7 +244,7 @@ func (t *TestSuite) TestTexturedBox() {
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		box.Move(float32(w/2), 0)
+		box.MoveTo(float32(w/2), 0)
 
 		texImg, err := loadImageResource(texFilename)
 		if err != nil {
@@ -285,7 +285,7 @@ func (t *TestSuite) TestTexturedRotatedBox() {
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		box.Move(float32(w/2), 0)
+		box.MoveTo(float32(w/2), 0)
 
 		texImg, err := loadImageResource(texFilename)
 		if err != nil {
@@ -328,7 +328,7 @@ func (t *TestSuite) TestPartialTextureRotatedBox() {
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
-		box.Move(float32(w/2), 0)
+		box.MoveTo(float32(w/2), 0)
 
 		texImg, err := loadImageResource(texFilename)
 		if err != nil {
@@ -363,36 +363,47 @@ func (t *TestSuite) TestPartialTextureRotatedBox() {
 }
 
 func (t *TestSuite) TestGroup() {
-	// filename := "expected_group.png"
+	filename := "expected_group.png"
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
 
-		// Create first group, 2 parallel segments
+		// Create first group, 2 small boxes
 		group1 := shapes.NewGroup()
-		group1.Add("s1", shapes.NewSegment(t.renderState.segmentProgram, 50, 50, 100, 100))
-		group1.Add("s2", shapes.NewSegment(t.renderState.segmentProgram, 50, 60, 100, 110))
+		b1 := shapes.NewBox(t.renderState.boxProgram, 20, 20)
+		b1.MoveTo(30, 40)
+		b2 := shapes.NewBox(t.renderState.boxProgram, 50, 50)
+		b2.MoveTo(45, -25)
+		b2.Rotate(20.0)
+		group1.Add("b1", b1)
+		group1.Add("b2", b2)
 
 		// Create the main group
-		group2 := shapes.NewGroup()
-		group2.Add("box", shapes.NewBox(t.renderState.boxProgram, 100, 100))
-		group2.Add("g1", group1)
-		group2.AttachToWorld(world)
-		gl.Clear(gl.COLOR_BUFFER_BIT)
-		group2.Draw()
+		group := shapes.NewGroup()
+		group.Add("g1", group1)
+		group.Add("b3", shapes.NewBox(t.renderState.boxProgram, 100, 100))
 
-		// t.testDraw <- testlib.Screenshot(t.renderState.window)
+		b3, err := group.Child("b3")
+		if err != nil {
+			panic(err)
+		}
+		b3.MoveTo(float32(w/2), 0)
+
+		group.AttachToWorld(world)
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+		group.Draw()
+
+		t.testDraw <- testlib.Screenshot(t.renderState.window)
 		t.renderState.window.SwapBuffers()
 	}
-	// distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// t.True(distance < distanceThreshold, distanceError(distance, filename))
-	// if t.Failed() {
-	// 	saveExpAct(t.outputPath, "failed_"+filename, exp, act)
-	// }
-	t.True(true)
+	distance, exp, act, err := testlib.TestImage(filename, <-t.testDraw, imagetest.Center)
+	if err != nil {
+		panic(err)
+	}
+	t.True(distance < distanceThreshold, distanceError(distance, filename))
+	if t.Failed() {
+		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
+	}
 }
 
 func getBufferDataFromImage(img image.Image) ([]byte, int, int) {

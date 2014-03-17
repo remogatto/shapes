@@ -57,6 +57,8 @@ type Base struct {
 
 // Rotate the shape around its center, by the given angle in degrees.
 func (b *Base) Rotate(angle float32) {
+	// axis := mathgl.Vec3f{0, 0, 0}
+	// b.modelMatrix = mathgl.Translate3D(b.x, b.y, 0).Mul4(mathgl.HomogRotate3D(angle, axis))
 	b.modelMatrix = mathgl.Translate3D(b.x, b.y, 0).Mul4(mathgl.HomogRotate3DZ(angle))
 	b.angle = angle
 }
@@ -67,10 +69,9 @@ func (b *Base) Scale(sx, sy float32) {
 }
 
 // Move the shape by dx, dy
-func (b *Base) Move(dx, dy float32) {
-	b.x += dx
-	b.y += dy
-	b.modelMatrix = mathgl.Translate3D(b.x, b.y, 0)
+func (b *Base) MoveTo(x, y float32) {
+	b.modelMatrix = mathgl.Translate3D(x, y, 0)
+	b.x, b.y = x, y
 }
 
 func (b *Base) Vertices() []float32 {

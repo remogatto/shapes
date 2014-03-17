@@ -9,8 +9,8 @@ type Shape interface {
 	// Scale shape
 	Scale(sx, sy float32)
 
-	// Move the (center of the) shape by dx, dy
-	Move(dx, dy float32)
+	// Move the (center of the) shape to x, y
+	MoveTo(x, y float32)
 
 	// Renders
 	Draw()

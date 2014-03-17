@@ -57,6 +57,14 @@ func (g *Group) Remove(k string) error {
 	return nil
 }
 
+func (g *Group) Child(k string) (Shape, error) {
+	if _, exists := g.children[k]; !exists {
+		return nil, fmt.Errorf("cannot find a shape named '%s'", k)
+	}
+
+	return g.children[k], nil
+}
+
 func (g *Group) Draw() {
 	for _, s := range g.children {
 		s.Draw()
@@ -64,7 +72,10 @@ func (g *Group) Draw() {
 }
 
 func (g *Group) Rotate(angle float32) {
-	// TODO
+	// cx, cy := g.Center()
+	for _, s := range g.children {
+		s.Rotate(angle)
+	}
 }
 
 func (g *Group) Scale(sx, sy float32) {
@@ -73,9 +84,12 @@ func (g *Group) Scale(sx, sy float32) {
 	}
 }
 
-func (g *Group) Move(dx, dy float32) {
+func (g *Group) MoveTo(x, y float32) {
 	for _, s := range g.children {
-		s.Move(dx, dy)
+		sx, sy := s.Center()
+		nx := x - (g.x - sx)
+		ny := y - (g.y - sy)
+		s.MoveTo(nx, ny)
 	}
 }
 
