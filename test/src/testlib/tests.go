@@ -5,10 +5,10 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/aded/shapes"
 	"github.com/remogatto/imagetest"
 	"github.com/remogatto/mandala/test/src/testlib"
 	gl "github.com/remogatto/opengles2"
+	"github.com/remogatto/shapes"
 )
 
 const (

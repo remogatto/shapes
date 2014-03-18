@@ -3,6 +3,7 @@ package shapes
 import (
 	"fmt"
 	"image"
+	"sync"
 )
 
 // Group implements Shape too.
@@ -16,6 +17,9 @@ type Group struct {
 	// Bounds
 	bounds image.Rectangle
 
+	// rwMutex handle councurrent access to children slice
+	rwMutex sync.RWMutex
+
 	children map[string]Shape
 }
 
@@ -26,6 +30,9 @@ func NewGroup() *Group {
 }
 
 func (g *Group) Add(k string, s Shape) error {
+	g.rwMutex.Lock()
+	defer g.rwMutex.Unlock()
+
 	if _, exists := g.children[k]; exists {
 		return fmt.Errorf("a shape '%s' already exists", k)
 	}
@@ -46,6 +53,9 @@ func (g *Group) Add(k string, s Shape) error {
 }
 
 func (g *Group) Remove(k string) error {
+	g.rwMutex.Lock()
+	defer g.rwMutex.Unlock()
+
 	if _, exists := g.children[k]; !exists {
 		return fmt.Errorf("cannot find a shape named '%s'", k)
 	}
@@ -58,6 +68,9 @@ func (g *Group) Remove(k string) error {
 }
 
 func (g *Group) Child(k string) (Shape, error) {
+	g.rwMutex.RLock()
+	defer g.rwMutex.RUnlock()
+
 	if _, exists := g.children[k]; !exists {
 		return nil, fmt.Errorf("cannot find a shape named '%s'", k)
 	}

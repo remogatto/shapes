@@ -13,12 +13,12 @@ import (
 	"time"
 
 	"git.tideland.biz/goas/loop"
-	"github.com/aded/shapes"
 	"github.com/remogatto/mandala"
 	"github.com/remogatto/mathgl"
 	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/prettytest"
 	"github.com/remogatto/shaders"
+	"github.com/remogatto/shapes"
 )
 
 const (
