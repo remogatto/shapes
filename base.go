@@ -136,25 +136,16 @@ func (b *Base) AttachToWorld(world World) {
 }
 
 // Binds a texture to the shape.
-func (b *Base) AttachTexture(buf []byte, w, h int, texCoords []float32) error {
+func (b *Base) AttachTexture(img *image.RGBA, texCoords []float32) error {
 
+	w, h := gl.Sizei(img.Bounds().Dx()), gl.Sizei(img.Bounds().Dy())
 	b.texCoords = texCoords
 
 	gl.GenTextures(1, &b.texBuffer)
 	gl.BindTexture(gl.TEXTURE_2D, b.texBuffer)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-	gl.TexImage2D(
-		gl.TEXTURE_2D,
-		0,
-		gl.RGBA,
-		gl.Sizei(w),
-		gl.Sizei(h),
-		0,
-		gl.RGBA,
-		gl.UNSIGNED_BYTE,
-		gl.Void(&buf[0]),
-	)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Void(&img.Pix[0]))
 
 	return nil
 }

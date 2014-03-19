@@ -235,6 +235,7 @@ func loadImageResource(filename string) (image.Image, error) {
 	}
 
 	img, err := png.Decode(bytes.NewReader(buffer))
+
 	if err != nil {
 		return nil, err
 	}

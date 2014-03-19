@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/draw"
 
 	"github.com/remogatto/imagetest"
 	"github.com/remogatto/mandala/test/src/testlib"
@@ -251,7 +252,10 @@ func (t *TestSuite) TestTexturedBox() {
 			panic(err)
 		}
 
-		buffer, texImgWidth, texImgHeight := getBufferDataFromImage(texImg)
+		// Convert to RGBA
+		b := texImg.Bounds()
+		rgbaImage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+		draw.Draw(rgbaImage, rgbaImage.Bounds(), texImg, b.Min, draw.Src)
 
 		texCoords := []float32{
 			0, 0,
@@ -260,7 +264,7 @@ func (t *TestSuite) TestTexturedBox() {
 			1, 1,
 		}
 
-		box.AttachTexture(buffer, texImgWidth, texImgHeight, texCoords)
+		box.AttachTexture(rgbaImage, texCoords)
 
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
@@ -292,7 +296,10 @@ func (t *TestSuite) TestTexturedRotatedBox() {
 			panic(err)
 		}
 
-		buffer, texImgWidth, texImgHeight := getBufferDataFromImage(texImg)
+		// Convert to RGBA
+		b := texImg.Bounds()
+		rgbaImage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+		draw.Draw(rgbaImage, rgbaImage.Bounds(), texImg, b.Min, draw.Src)
 
 		texCoords := []float32{
 			0, 0,
@@ -300,8 +307,7 @@ func (t *TestSuite) TestTexturedRotatedBox() {
 			0, 1,
 			1, 1,
 		}
-
-		box.AttachTexture(buffer, texImgWidth, texImgHeight, texCoords)
+		box.AttachTexture(rgbaImage, texCoords)
 
 		box.Rotate(20.0)
 
@@ -335,7 +341,10 @@ func (t *TestSuite) TestPartialTextureRotatedBox() {
 			panic(err)
 		}
 
-		buffer, texImgWidth, texImgHeight := getBufferDataFromImage(texImg)
+		// Convert to RGBA
+		b := texImg.Bounds()
+		rgbaImage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+		draw.Draw(rgbaImage, rgbaImage.Bounds(), texImg, b.Min, draw.Src)
 
 		texCoords := []float32{
 			0, 0,
@@ -343,8 +352,7 @@ func (t *TestSuite) TestPartialTextureRotatedBox() {
 			0, 0.5,
 			0.5, 0.5,
 		}
-
-		box.AttachTexture(buffer, texImgWidth, texImgHeight, texCoords)
+		box.AttachTexture(rgbaImage, texCoords)
 
 		box.Rotate(20.0)
 
@@ -406,21 +414,21 @@ func (t *TestSuite) TestGroup() {
 	}
 }
 
-func getBufferDataFromImage(img image.Image) ([]byte, int, int) {
-	bounds := img.Bounds()
-	imgWidth, imgHeight := bounds.Size().X, bounds.Size().Y
-	buffer := make([]byte, imgWidth*imgHeight*4)
-	index := 0
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			r, g, b, a := img.At(x, y).RGBA()
-			buffer[index] = byte(r)
-			buffer[index+1] = byte(g)
-			buffer[index+2] = byte(b)
-			buffer[index+3] = byte(a)
-			index += 4
-		}
-	}
+// func getBufferDataFromImage(img image.Image) ([]byte, int, int) {
+// 	bounds := img.Bounds()
+// 	imgWidth, imgHeight := bounds.Size().X, bounds.Size().Y
+// 	buffer := make([]byte, imgWidth*imgHeight*4)
+// 	index := 0
+// 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+// 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+// 			r, g, b, a := img.At(x, y).RGBA()
+// 			buffer[index] = byte(r)
+// 			buffer[index+1] = byte(g)
+// 			buffer[index+2] = byte(b)
+// 			buffer[index+3] = byte(a)
+// 			index += 4
+// 		}
+// 	}
 
-	return buffer, imgWidth, imgHeight
-}
+// 	return buffer, imgWidth, imgHeight
+// }
