@@ -9,6 +9,9 @@ type Shape interface {
 	// Scale shape
 	Scale(sx, sy float32)
 
+	// Move the shape by dx, dy
+	Move(dx, dy float32)
+
 	// Move the (center of the) shape to x, y
 	MoveTo(x, y float32)
 
@@ -32,6 +35,9 @@ type Shape interface {
 
 	// Puts the shape into the world
 	AttachToWorld(world World)
+
+	// Clone clones the current shape and returns a new shape
+	Clone() Shape
 
 	// Adds a texture
 	// AttachTexture(buf []byte, w, h int, texCoords []float32) error

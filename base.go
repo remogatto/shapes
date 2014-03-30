@@ -6,7 +6,6 @@ import (
 	"image/color"
 
 	"github.com/remogatto/mathgl"
-	gl "github.com/remogatto/opengles2"
 	"github.com/remogatto/shaders"
 )
 
@@ -66,12 +65,23 @@ func (b *Base) Rotate(angle float32) {
 // Scale the shape relative to its center, by the given factors.
 func (b *Base) Scale(sx, sy float32) {
 	b.modelMatrix = mathgl.Translate3D(b.x, b.y, 0).Mul4(mathgl.Scale3D(sx, sy, 1.0))
+
 }
 
-// Move the shape by dx, dy
+// Move moves the shape by dx, dy.
+func (b *Base) Move(dx, dy float32) {
+	b.modelMatrix = b.modelMatrix.Mul4(mathgl.Translate3D(dx, dy, 0))
+	b.bounds = b.bounds.Add(image.Point{int(dx), int(dy)})
+	b.x, b.y = b.x+dx, b.y+dy
+}
+
+// Move the shape by x, y
 func (b *Base) MoveTo(x, y float32) {
 	b.modelMatrix = mathgl.Translate3D(x, y, 0)
+	dx := x - b.x
+	dy := y - b.y
 	b.x, b.y = x, y
+	b.bounds = b.bounds.Add(image.Point{int(dx), int(dy)})
 }
 
 func (b *Base) Vertices() []float32 {
@@ -82,6 +92,11 @@ func (b *Base) Vertices() []float32 {
 // shape.
 func (b *Base) Center() (float32, float32) {
 	return b.x, b.y
+}
+
+// SetCenter sets the coordinates of the center of the shape.
+func (b *Base) SetCenter(x, y float32) {
+	b.x, b.y = x, y
 }
 
 // Angle returns the current angle of the shape in degrees.
@@ -135,18 +150,10 @@ func (b *Base) AttachToWorld(world World) {
 	b.viewMatrix = world.View()
 }
 
-// Binds a texture to the shape.
-func (b *Base) AttachTexture(img *image.RGBA, texCoords []float32) error {
-
-	w, h := gl.Sizei(img.Bounds().Dx()), gl.Sizei(img.Bounds().Dy())
+// SetTexture sets a texture for the shape.
+func (b *Base) SetTexture(texture uint32, texCoords []float32) error {
 	b.texCoords = texCoords
-
-	gl.GenTextures(1, &b.texBuffer)
-	gl.BindTexture(gl.TEXTURE_2D, b.texBuffer)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Void(&img.Pix[0]))
-
+	b.texBuffer = texture
 	return nil
 }
 
@@ -154,5 +161,19 @@ func (b *Base) AttachTexture(img *image.RGBA, texCoords []float32) error {
 // "(cx, cy), (w, h)".
 func (b *Base) String() string {
 	size := b.bounds.Size()
-	return fmt.Sprintf("(%f,%f)-(%f,%f)", b.x, b.y, float32(size.X), float32(size.Y))
+	return fmt.Sprintf(
+		"(%f,%f)-(%f,%f)\nVertices: %v\nProjection Matrix: %v\nView Matrix: %v\nModel matrix: %v\nTexture coordinates: %v\nTexture buffer: %v\nVertex color: %v %v",
+		b.x,
+		b.y,
+		float32(size.X),
+		float32(size.Y),
+		b.vertices,
+		b.projMatrix,
+		b.viewMatrix,
+		b.modelMatrix,
+		b.texCoords,
+		b.texBuffer,
+		b.vColor,
+		b.nColor,
+	)
 }

@@ -119,3 +119,10 @@ func (box *Box) Draw() {
 	gl.Flush()
 	gl.Finish()
 }
+
+func (box *Box) Clone() Shape {
+	b := NewBox(box.program, float32(box.bounds.Dx()), float32(box.bounds.Dy()))
+	b.SetColor(box.color)
+	b.SetTexture(box.texBuffer, box.texCoords)
+	return b
+}

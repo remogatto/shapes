@@ -2,9 +2,7 @@ package testlib
 
 import (
 	"fmt"
-	"image"
 	"image/color"
-	"image/draw"
 
 	"github.com/remogatto/imagetest"
 	"github.com/remogatto/mandala/test/src/testlib"
@@ -241,21 +239,15 @@ func (t *TestSuite) TestTexturedBox() {
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
+
 		// Create a box
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.MoveTo(float32(w/2), 0)
 
-		texImg, err := loadImageResource(texFilename)
-		if err != nil {
-			panic(err)
-		}
-
-		// Convert to RGBA
-		b := texImg.Bounds()
-		rgbaImage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-		draw.Draw(rgbaImage, rgbaImage.Bounds(), texImg, b.Min, draw.Src)
+		// Add an image as a texture
+		gopherTexture := world.addImageAsTexture(texFilename)
 
 		texCoords := []float32{
 			0, 0,
@@ -264,7 +256,7 @@ func (t *TestSuite) TestTexturedBox() {
 			1, 1,
 		}
 
-		box.AttachTexture(rgbaImage, texCoords)
+		box.SetTexture(gopherTexture, texCoords)
 
 		box.Draw()
 		t.testDraw <- testlib.Screenshot(t.renderState.window)
@@ -291,23 +283,15 @@ func (t *TestSuite) TestTexturedRotatedBox() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.MoveTo(float32(w/2), 0)
 
-		texImg, err := loadImageResource(texFilename)
-		if err != nil {
-			panic(err)
-		}
-
-		// Convert to RGBA
-		b := texImg.Bounds()
-		rgbaImage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-		draw.Draw(rgbaImage, rgbaImage.Bounds(), texImg, b.Min, draw.Src)
-
+		// Add an image as a texture
+		gopherTexture := world.addImageAsTexture(texFilename)
 		texCoords := []float32{
 			0, 0,
 			1, 0,
 			0, 1,
 			1, 1,
 		}
-		box.AttachTexture(rgbaImage, texCoords)
+		box.SetTexture(gopherTexture, texCoords)
 
 		box.Rotate(20.0)
 
@@ -330,21 +314,15 @@ func (t *TestSuite) TestPartialTextureRotatedBox() {
 	t.rlControl.drawFunc <- func() {
 		w, h := t.renderState.window.GetSize()
 		world := newWorld(w, h)
+
 		// Create a box
 		box := shapes.NewBox(t.renderState.boxProgram, 100, 100)
 		box.AttachToWorld(world)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		box.MoveTo(float32(w/2), 0)
 
-		texImg, err := loadImageResource(texFilename)
-		if err != nil {
-			panic(err)
-		}
-
-		// Convert to RGBA
-		b := texImg.Bounds()
-		rgbaImage := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-		draw.Draw(rgbaImage, rgbaImage.Bounds(), texImg, b.Min, draw.Src)
+		// Add an image as a texture
+		gopherTexture := world.addImageAsTexture(texFilename)
 
 		texCoords := []float32{
 			0, 0,
@@ -352,7 +330,7 @@ func (t *TestSuite) TestPartialTextureRotatedBox() {
 			0, 0.5,
 			0.5, 0.5,
 		}
-		box.AttachTexture(rgbaImage, texCoords)
+		box.SetTexture(gopherTexture, texCoords)
 
 		box.Rotate(20.0)
 
