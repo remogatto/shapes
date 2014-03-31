@@ -67,7 +67,7 @@ func (t *TestSuite) TestShape() {
 
 	// String representation
 
-	t.Equal("(10.000000,20.000000)-(10.000000,20.000000)", box.String())
+	t.Equal("(5,10)-(15,30)", box.String())
 }
 
 func (t *TestSuite) TestBox() {
