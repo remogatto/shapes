@@ -9,6 +9,7 @@ import (
 )
 
 var (
+	// DefaultBoxVS is a default vertex shader for boxes.
 	DefaultBoxVS = (shaders.VertexShader)(
 		`
                  precision mediump float;
@@ -25,6 +26,8 @@ var (
                      vColor = color;
                      texOut = texIn;
                  }`)
+
+	// DefaultBoxVS is a default fragment shader for boxes.
 	DefaultBoxFS = (shaders.FragmentShader)(
 		`
                  precision mediump float;
@@ -40,12 +43,13 @@ var (
                  }`)
 )
 
-// A Box
+// Box represents a box shape.
 type Box struct {
 	Base
 }
 
-// NewBox creates a new box of given sizes.
+// NewBox creates a new box of given sizes. It takes as arguments a
+// linked program and width and height values.
 func NewBox(program shaders.Program, width, height float32) *Box {
 
 	box := new(Box)
@@ -77,9 +81,7 @@ func NewBox(program shaders.Program, width, height float32) *Box {
 	// Fill the model matrix with the identity.
 	box.modelMatrix = mathgl.Ident4f()
 
-	// Size of the box
-	// box.w = width
-	// box.h = height
+	// Create the bounding rectangle for the shape.
 	box.bounds = image.Rect(
 		int(-width/2), int(-height/2),
 		int(width/2), int(height/2),
@@ -120,6 +122,7 @@ func (box *Box) Draw() {
 	gl.Finish()
 }
 
+// Clone makes a copy of the shape.
 func (box *Box) Clone() Shape {
 	b := NewBox(box.program, float32(box.bounds.Dx()), float32(box.bounds.Dy()))
 	b.SetColor(box.color)

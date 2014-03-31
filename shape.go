@@ -1,44 +1,53 @@
 package shapes
 
-import "image"
+import (
+	"image"
+	"image/color"
+)
 
+var (
+	// The default color for shapes is blue.
+	DefaultColor = color.RGBA{0, 0, 0xff, 0xff}
+)
+
+// Shape is an interface describing a shape.
 type Shape interface {
-	// Rotate shape
+	// Rotate rotates the shape by angle in degree.
 	Rotate(angle float32)
 
-	// Scale shape
+	// Scale scales the shape by (sx,sy) factor.
 	Scale(sx, sy float32)
 
-	// Move the shape by dx, dy
+	// Move moves the shape by (dx, dy).
 	Move(dx, dy float32)
 
-	// Move the (center of the) shape to x, y
+	// MoveTo moves the (center of the) shape in position (x,y).
 	MoveTo(x, y float32)
 
-	// Renders
+	// Draw renders the shape on the surface.
 	Draw()
 
-	// Returns vertices
+	// Vertices returns the vertices slice of the shape.
 	Vertices() []float32
 
-	// Returns the center coords
+	// Center returns the center coordinates of the shape.
 	Center() (float32, float32)
 
-	// Returns the rotation angle
+	// Angle returns the rotation angle of the shape.
 	Angle() float32
 
-	// Returns the bounds (width, height)
+	// Bounds returns the bounding rectangle of the shape.
 	Bounds() image.Rectangle
 
-	// String representation
+	// String returns a string representation of the shape.
 	String() string
 
-	// Puts the shape into the world
+	// AttachToWorld attaches the shape to a world.
 	AttachToWorld(world World)
 
-	// Clone clones the current shape and returns a new shape
+	// Clone clones the current shape and returns a new shape.
 	Clone() Shape
 
-	// Adds a texture
-	// AttachTexture(buf []byte, w, h int, texCoords []float32) error
+	// SetTexture sets a texture for the shape.
+	SetTexture(texture uint32, texCoords []float32) error
 }

@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	// Vertex shader for segment
+	// DefaultSegmentVS is a default vertex shader for the segment.
 	DefaultSegmentVS = (shaders.VertexShader)(
 		`precision mediump float;
                  attribute vec4 pos;
@@ -22,7 +22,9 @@ var (
                      gl_Position = projection*model*view*pos;
                      vColor = color;
                  }`)
-	// Fragment shader for segment
+
+	// DefaultSegmentVS is a default fragment shader for the
+	// segment.
 	DefaultSegmentFS = (shaders.FragmentShader)(
 		`precision mediump float;
                  varying vec4 vColor;
@@ -31,6 +33,7 @@ var (
                  }`)
 )
 
+// Segment is a structure representing a segment.
 type Segment struct {
 	Base
 
@@ -38,6 +41,8 @@ type Segment struct {
 	x1, y1, x2, y2 float32
 }
 
+// NewSegment returns a new segment object. It takes a program
+// shader and segment coordinates as arguments.
 func NewSegment(program shaders.Program, x1, y1, x2, y2 float32) *Segment {
 
 	segment := new(Segment)
@@ -80,7 +85,7 @@ func NewSegment(program shaders.Program, x1, y1, x2, y2 float32) *Segment {
 	return segment
 }
 
-// Draw actually renders the object on the surface.
+// Draw actually renders the segment on the surface.
 func (segment *Segment) Draw() {
 	segment.program.Use()
 	gl.VertexAttribPointer(segment.posId, 2, gl.FLOAT, false, 0, &segment.vertices[0])
