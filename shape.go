@@ -15,6 +15,10 @@ type Shape interface {
 	// Rotate rotates the shape by angle in degree.
 	Rotate(angle float32)
 
+	// RotateAround rotates the shape around the given point, by
+	// the given angle in degrees.
+	RotateAround(x, y, angle float32)
+
 	// Scale scales the shape by (sx,sy) factor.
 	Scale(sx, sy float32)
 

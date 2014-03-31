@@ -76,10 +76,19 @@ func (g *Group) Draw() {
 	}
 }
 
+// RotateAround rotates the grouparound the given point, by the given
+// angle in degrees.
+func (b *Group) RotateAround(x, y, angle float32) {
+	// b.modelMatrix = mathgl.Translate3D(x, y, 0).Mul4(mathgl.HomogRotate3DZ(angle)).Mul4(mathgl.Translate3D(b.x, b.y, 0))
+	// b.angle = angle
+}
+
 // Rotate rotates the group aroung its center.
 func (g *Group) Rotate(angle float32) {
+	g.rwMutex.Lock()
+	defer g.rwMutex.Unlock()
 	for _, s := range g.children {
-		s.Rotate(angle)
+		s.RotateAround(g.x, g.y, angle)
 	}
 }
 
@@ -178,7 +187,7 @@ func (g *Group) Clone() Shape {
 		cg.Append(cs)
 	}
 
-	return cg
+	return g
 }
 
 // SetTexture sets the same texture to all shapes in the group.

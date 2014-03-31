@@ -61,6 +61,15 @@ func (b *Base) Rotate(angle float32) {
 	b.angle = angle
 }
 
+// RotateAround rotates the shape around the given point, by the given
+// angle in degrees.
+func (b *Base) RotateAround(x, y, angle float32) {
+	dx, dy := x-b.x, y-b.y
+	b.modelMatrix = mathgl.Translate3D(x, y, 0).Mul4(mathgl.HomogRotate3DZ(angle))
+	b.modelMatrix = b.modelMatrix.Mul4(mathgl.Translate3D(-dx, -dy, 0))
+	b.angle = angle
+}
+
 // Scale scales the shape relative to its center, by the given
 // factors.
 func (b *Base) Scale(sx, sy float32) {
