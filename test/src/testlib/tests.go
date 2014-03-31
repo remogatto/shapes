@@ -369,8 +369,8 @@ func (t *TestSuite) TestGroup() {
 		group.Append(group1)
 		group.Append(shapes.NewBox(t.renderState.boxProgram, 100, 100))
 
-		// Get the first shape in group
-		b3 := group.GetAt(0)
+		// Get the second element of the group
+		b3 := group.GetAt(1)
 		b3.MoveTo(float32(w/2), 0)
 
 		group.AttachToWorld(world)
@@ -389,22 +389,3 @@ func (t *TestSuite) TestGroup() {
 		saveExpAct(t.outputPath, "failed_"+filename, exp, act)
 	}
 }
-
-// func getBufferDataFromImage(img image.Image) ([]byte, int, int) {
-// 	bounds := img.Bounds()
-// 	imgWidth, imgHeight := bounds.Size().X, bounds.Size().Y
-// 	buffer := make([]byte, imgWidth*imgHeight*4)
-// 	index := 0
-// 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-// 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-// 			r, g, b, a := img.At(x, y).RGBA()
-// 			buffer[index] = byte(r)
-// 			buffer[index+1] = byte(g)
-// 			buffer[index+2] = byte(b)
-// 			buffer[index+3] = byte(a)
-// 			index += 4
-// 		}
-// 	}
-
-// 	return buffer, imgWidth, imgHeight
-// }
