@@ -62,16 +62,10 @@ func (g *Group) Append(s Shape) {
 // 	return nil
 // }
 
-// func (g *Group) Child(k string) (Shape, error) {
-// 	g.rwMutex.RLock()
-// 	defer g.rwMutex.RUnlock()
-
-// 	if _, exists := g.children[k]; !exists {
-// 		return nil, fmt.Errorf("cannot find a shape named '%s'", k)
-// 	}
-
-// 	return g.children[k], nil
-// }
+// GetAt returns the shape at position id in the group.
+func (g *Group) GetAt(id int) Shape {
+	return g.children[id]
+}
 
 // Draw draws all the shapes in the group calling their Draw method.
 func (g *Group) Draw() {

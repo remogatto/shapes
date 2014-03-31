@@ -361,18 +361,16 @@ func (t *TestSuite) TestGroup() {
 		b2 := shapes.NewBox(t.renderState.boxProgram, 50, 50)
 		b2.MoveTo(45, -25)
 		b2.Rotate(20.0)
-		group1.Add("b1", b1)
-		group1.Add("b2", b2)
+		group1.Append(b1)
+		group1.Append(b2)
 
 		// Create the main group
 		group := shapes.NewGroup()
-		group.Add("g1", group1)
-		group.Add("b3", shapes.NewBox(t.renderState.boxProgram, 100, 100))
+		group.Append(group1)
+		group.Append(shapes.NewBox(t.renderState.boxProgram, 100, 100))
 
-		b3, err := group.Child("b3")
-		if err != nil {
-			panic(err)
-		}
+		// Get the first shape in group
+		b3 := group.GetAt(0)
 		b3.MoveTo(float32(w/2), 0)
 
 		group.AttachToWorld(world)
